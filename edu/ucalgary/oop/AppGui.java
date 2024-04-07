@@ -3,8 +3,16 @@ package edu.ucalgary.oop;
 import javax.swing.*;
 
 public abstract class AppGui {
-    public abstract JPanel getPanel();
+    protected static JFrame frame;
 
-    public abstract JMenu getMenuOptions();
+    protected void switchToGui(AppGui newGui) {
+        frame.setContentPane(newGui.getMainPanel());
+        frame.setJMenuBar(newGui.createMenuBar());
+        frame.validate();
+    }
+
+    public abstract JPanel getMainPanel();
+
+    public abstract JMenuBar createMenuBar();
 
 }
