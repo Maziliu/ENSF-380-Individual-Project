@@ -1,0 +1,29 @@
+javac -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar edu/ucalgary/oop/*.java
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.DisasterVictimTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.FamilyRelationTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.InquirerTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.LocationTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.MedicalRecordTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.PersonTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.ReliefServicesTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.SupplyTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.DriverApplicationTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.CentralAppTest
+java -cp .;junit-4.13.2.jar;hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.LocationBasedAppTest
+
+
+javac -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar edu/ucalgary/oop/*.java
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.DisasterVictimTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.FamilyRelationTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.InquirerTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.LocationTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.MedicalRecordTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.PersonTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.ReliefServicesTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.SupplyTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.DriverApplicationTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.CentralAppTest
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore edu.ucalgary.oop.LocationBasedAppTest
+
+javac -cp .:postgresql-42.7.3.jar edu/ucalgary/oop/DriverApplication.java
+java -cp .:postgresql-42.7.3.jar edu.ucalgary.oop.DriverApplication 
