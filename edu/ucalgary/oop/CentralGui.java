@@ -2,6 +2,7 @@ package edu.ucalgary.oop;
 
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import java.awt.*;
@@ -29,13 +30,11 @@ public class CentralGui extends AppGui {
     public JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // File menu
         JMenu fileMenu = new JMenu("File");
         JMenuItem exitItem = new JMenuItem("Exit");
-        exitItem.addActionListener(e -> System.exit(0)); // Add an action to exit
+        exitItem.addActionListener(e -> System.exit(0));
         fileMenu.add(exitItem);
 
-        // Options menu with dynamically added items
         JMenu optionsMenu = new JMenu("Options");
         String[] options = { "Disaster Victims", "Inquirers", "Generate Data" };
 
@@ -86,8 +85,143 @@ public class CentralGui extends AppGui {
 
         for (Inquirer result : results) {
             model.addRow(
-                    new Object[] { result.getServicesPhone(), result.getFirstName(), result.getLastName() });
+                    new Object[] { result.getFirstName(), result.getLastName(), result.getServicesPhone() });
         }
+    }
+
+    private void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
+            JTextField searchBar, DefaultTableModel model) {
+        JFrame popupFrame = new JFrame("Victim Information");
+        popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        JPanel popupPanel = new JPanel(new BorderLayout(10, 10));
+        popupPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+
+        JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        idPanel.add(new JLabel("ID: "));
+        idPanel.add(new JLabel(id));
+        detailsPanel.add(idPanel);
+
+        String[] labels = { "First Name:", "Last Name:" };
+        JTextField[] textFields = { new JTextField(firstName), new JTextField(lastName) };
+        for (int i = 0; i < labels.length; i++) {
+            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            rowPanel.add(new JLabel(labels[i]));
+            textFields[i].setColumns(20);
+            rowPanel.add(textFields[i]);
+            detailsPanel.add(rowPanel);
+        }
+
+        JPanel locationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        locationPanel.add(new JLabel("Location: "));
+        JComboBox<String> locationComboBox = new JComboBox<>();
+        for (Location l : DriverApplication.locations) {
+            locationComboBox.addItem(l.getName());
+        }
+        locationComboBox.setSelectedItem(location);
+        locationPanel.add(locationComboBox);
+        detailsPanel.add(locationPanel);
+
+        DisasterVictim victim = null;
+        for (DisasterVictim v : DriverApplication.disasterVictims) {
+            if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
+                victim = v;
+                break;
+            }
+        }
+
+        if (victim != null) {
+            JPanel infoPanel = new JPanel(new BorderLayout());
+            infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Optional, for padding
+
+            String[] columnNames = { "Name", "Relation" };
+            ArrayList<Object[]> dataList = new ArrayList<>();
+
+            for (FamilyRelation connection : victim.getFamilyConnections()) {
+                DisasterVictim other = connection.getPersonOne().equals(victim) ? connection.getPersonTwo()
+                        : connection.getPersonOne();
+                dataList.add(
+                        new Object[] { other.getFirstName() + " " + other.getLastName(), connection.getRelation() });
+            }
+
+            Object[][] data = dataList.toArray(new Object[0][]);
+
+            DefaultTableModel modelInner = new DefaultTableModel(data, columnNames) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            JTable resultsTable = new JTable(modelInner);
+            JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
+            resultsScrollPane.setPreferredSize(new Dimension(450, 150));
+
+            infoPanel.add(resultsScrollPane, BorderLayout.CENTER);
+            detailsPanel.add(infoPanel);
+        }
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        popupPanel.add(detailsPanel, BorderLayout.CENTER);
+        popupPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String updatedFirstName = textFields[0].getText();
+                String updatedLastName = textFields[1].getText();
+                String updatedLocation = locationComboBox.getSelectedItem().toString();
+
+                DisasterVictim victim = null;
+                for (Location l : DriverApplication.locations) {
+                    for (DisasterVictim v : l.getOccupants()) {
+                        if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
+                            victim = v;
+                            break;
+                        }
+                    }
+                }
+
+                if (victim != null) {
+                    victim.setFirstName(updatedFirstName);
+                    victim.setLastName(updatedLastName);
+
+                    for (Location l : DriverApplication.locations) {
+                        if (l.getName().equals(location)) {
+                            l.removeOccupant(victim);
+                            break;
+                        }
+                    }
+
+                    for (Location l : DriverApplication.locations) {
+                        if (l.getName().equals(updatedLocation)) {
+                            l.addOccupant(victim);
+                            break;
+                        }
+                    }
+                }
+                updateDisasterVictimTable(searchBar, model);
+                popupFrame.dispose();
+            }
+        });
+
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                popupFrame.dispose();
+            }
+        });
+
+        popupFrame.add(popupPanel);
+        popupFrame.pack();
+        popupFrame.setLocationRelativeTo(null);
+        popupFrame.setVisible(true);
     }
 
     private JPanel getDisasterVictimPanel() {
@@ -109,9 +243,10 @@ public class CentralGui extends AppGui {
         };
         JTable resultsTable = new JTable(model);
         JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
-        searchBarPanel.add(resultsScrollPane, BorderLayout.SOUTH);
+        container.add(resultsScrollPane, BorderLayout.CENTER);
 
         updateDisasterVictimTable(searchBar, model);
+
         resultsTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -121,75 +256,7 @@ public class CentralGui extends AppGui {
                     String firstName = resultsTable.getValueAt(row, 1).toString();
                     String lastName = resultsTable.getValueAt(row, 2).toString();
                     String location = resultsTable.getValueAt(row, 3).toString();
-
-                    JFrame popupFrame = new JFrame("Victim Information");
-                    JPanel popupPanel = new JPanel(new GridLayout(5, 2));
-
-                    String[] labels = { "First Name:", "Last Name:", "Location:" };
-                    JTextField[] textFields = { new JTextField(firstName), new JTextField(lastName),
-                            new JTextField(location) };
-
-                    JButton saveButton = new JButton("Save");
-                    JButton cancelButton = new JButton("Cancel");
-
-                    saveButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            String updatedFirstName = textFields[0].getText();
-                            String updatedLastName = textFields[1].getText();
-                            String updatedLocation = textFields[2].getText();
-
-                            DisasterVictim victim = null;
-                            for (Location loc : DriverApplication.locations) {
-                                for (DisasterVictim v : loc.getOccupants()) {
-                                    if (v.getAssignedSocialID() == Integer.parseInt(id)) {
-                                        victim = v;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (victim != null) {
-                                victim.setFirstName(updatedFirstName);
-                                victim.setLastName(updatedLastName);
-
-                                for (Location loc : DriverApplication.locations) {
-                                    loc.removeOccupant(victim);
-                                }
-
-                                for (Location loc : DriverApplication.locations) {
-                                    if (loc.getName().equals(updatedLocation)) {
-                                        loc.addOccupant(victim);
-                                    }
-                                }
-                            }
-
-                            updateDisasterVictimTable(searchBar, model);
-                            popupFrame.dispose();
-                        }
-                    });
-
-                    cancelButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            popupFrame.dispose();
-                        }
-                    });
-
-                    popupPanel.add(new JLabel("ID: "));
-                    popupPanel.add(new JLabel(id));
-
-                    for (int i = 0; i < labels.length; i++) {
-                        popupPanel.add(new JLabel(labels[i]));
-                        popupPanel.add(textFields[i]);
-                    }
-
-                    popupPanel.add(saveButton);
-                    popupPanel.add(cancelButton);
-
-                    popupFrame.add(popupPanel);
-                    popupFrame.pack();
-                    popupFrame.setVisible(true);
+                    displayVictimInfoPopup(id, firstName, lastName, location, searchBar, model);
                 }
             }
         });
@@ -219,6 +286,118 @@ public class CentralGui extends AppGui {
         }
 
         return results;
+    }
+
+    private void displayInquirerInfoPopup(String phoneNumber, String firstName, String lastName, JTextField searchBar,
+            DefaultTableModel model) {
+        JFrame popupFrame = new JFrame("Inquirer Information");
+        popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        JPanel popupPanel = new JPanel(new BorderLayout(10, 10));
+        popupPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+
+        JPanel phonePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        phonePanel.add(new JLabel("Phone Number: "));
+        phonePanel.add(new JLabel(phoneNumber));
+        detailsPanel.add(phonePanel);
+
+        String[] labels = { "First Name:", "Last Name:" };
+        JTextField firstNameField = new JTextField(firstName, 20);
+        JTextField lastNameField = new JTextField(lastName, 20);
+        JTextField[] fields = { firstNameField, lastNameField };
+
+        for (int i = 0; i < labels.length; i++) {
+            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            rowPanel.add(new JLabel(labels[i]));
+            rowPanel.add(fields[i]);
+            detailsPanel.add(rowPanel);
+        }
+
+        Inquirer inquirer = null;
+        for (Inquirer i : DriverApplication.inquirers) {
+            if (i.getServicesPhone().equals(phoneNumber)
+                    && i.getFirstName().equals(firstName)) {
+                inquirer = i;
+                break;
+            }
+        }
+
+        if (inquirer != null) {
+            JPanel infoPanel = new JPanel(new BorderLayout());
+            infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Optional, for padding
+
+            String[] columnNames = { "Inquirer", "Date", "Details" };
+            ArrayList<Object[]> dataList = new ArrayList<>();
+
+            for (InquirerLog log : inquirer.getPreviousInteractions()) {
+                dataList.add(new Object[] { log.getInquirer().getFirstName() + " " + log.getInquirer().getLastName(),
+                        log.getCallDate(),
+                        log.getDetails() });
+            }
+
+            Object[][] data = dataList.toArray(new Object[0][]);
+
+            DefaultTableModel modelInner = new DefaultTableModel(data, columnNames) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            JTable resultsTable = new JTable(modelInner);
+            JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
+            resultsScrollPane.setPreferredSize(new Dimension(450, 150));
+
+            infoPanel.add(resultsScrollPane, BorderLayout.CENTER);
+            detailsPanel.add(infoPanel);
+        }
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String updatedFirstName = fields[0].getText();
+                String updatedLastName = fields[1].getText();
+
+                Inquirer inquirer = null;
+                for (Inquirer i : DriverApplication.inquirers) {
+                    if (i.getServicesPhone().equals(phoneNumber)) {
+                        inquirer = i;
+                        break;
+                    }
+                }
+
+                if (inquirer != null) {
+                    inquirer.setFirstName(updatedFirstName);
+                    inquirer.setLastName(updatedLastName);
+                }
+
+                updateinquirerTable(searchBar, model);
+                popupFrame.dispose();
+            }
+        });
+
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                popupFrame.dispose();
+            }
+        });
+
+        popupPanel.add(detailsPanel, BorderLayout.CENTER);
+        popupPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        popupFrame.add(popupPanel);
+        popupFrame.pack();
+        popupFrame.setLocationRelativeTo(null);
+        popupFrame.setVisible(true);
     }
 
     private JPanel getInquirersPanel() {
@@ -251,57 +430,7 @@ public class CentralGui extends AppGui {
                     String phoneNumber = resultsTable.getValueAt(row, 2).toString();
                     String firstName = resultsTable.getValueAt(row, 0).toString();
                     String lastName = resultsTable.getValueAt(row, 1).toString();
-
-                    JFrame popupFrame = new JFrame("Inquirer Information");
-                    JPanel popupPanel = new JPanel(new GridLayout(4, 2));
-
-                    String[] labels = { "First Name:", "Last Name:" };
-                    JTextField[] textFields = { new JTextField(firstName), new JTextField(lastName) };
-
-                    JButton saveButton = new JButton("Save");
-                    JButton cancelButton = new JButton("Cancel");
-
-                    saveButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            String updatedFirstName = textFields[0].getText();
-                            String updatedLastName = textFields[1].getText();
-
-                            Inquirer inquirer = null;
-                            for (Inquirer i : DriverApplication.inquirers) {
-                                if (i.getServicesPhone().equals(phoneNumber)) {
-                                    inquirer = i;
-                                    break;
-                                }
-                            }
-
-                            if (inquirer != null) {
-                                inquirer.setFirstName(updatedFirstName);
-                                inquirer.setLastName(updatedLastName);
-                            }
-
-                            popupFrame.dispose();
-                        }
-                    });
-
-                    cancelButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            popupFrame.dispose();
-                        }
-                    });
-
-                    for (int i = 0; i < labels.length; i++) {
-                        popupPanel.add(new JLabel(labels[i]));
-                        popupPanel.add(textFields[i]);
-                    }
-
-                    popupPanel.add(saveButton);
-                    popupPanel.add(cancelButton);
-
-                    popupFrame.add(popupPanel);
-                    popupFrame.pack();
-                    popupFrame.setVisible(true);
+                    displayInquirerInfoPopup(phoneNumber, firstName, lastName, searchBar, model);
                 }
             }
         });

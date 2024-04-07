@@ -1,5 +1,6 @@
 package edu.ucalgary.oop;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -7,8 +8,10 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 
-public class DisasterVictim extends Person implements ILoggable {
+public class DisasterVictim extends Person {
     private String comments;
+    private LocalDate dateOfBirth;
+    private String gender = "Unknown";
     private ArrayList<MedicalRecord> medicalRecords;
     private ArrayList<Supply> personalBelongings;
     private HashSet<FamilyRelation> familyConnections;
@@ -25,6 +28,8 @@ public class DisasterVictim extends Person implements ILoggable {
         personalBelongings = new ArrayList<Supply>();
         familyConnections = new HashSet<FamilyRelation>();
         dietaryRestrictions = EnumSet.noneOf(DietaryRestrictions.class);
+        setDateOfBirth(dateOfBirth);
+        setGender(gender);
     }
 
     public DisasterVictim(String firstName, String lastName, LocalDate now, LocalDate dateOfBirth, String gender) {
@@ -196,6 +201,48 @@ public class DisasterVictim extends Person implements ILoggable {
         }
     }
 
+    public void setGender(String gender) {
+        if (gender.isEmpty()) {
+            return;
+        }
+
+        ArrayList<String> availableGenders = new ArrayList<String>();
+        try {
+            File genderFile = new File("edu/ucalgary/oop/GenderOptions.txt");
+            Scanner sr = new Scanner(genderFile);
+            while (sr.hasNextLine()) {
+                availableGenders.add(sr.nextLine());
+            }
+            sr.close();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("File not found");
+        }
+
+        boolean genderFound = false;
+        for (String option : availableGenders) {
+            if (option.toLowerCase().equals(gender.toLowerCase())) {
+                this.gender = gender;
+                genderFound = true;
+                break;
+            }
+        }
+
+        if (!genderFound && !gender.equals("Unknown")) {
+            throw new IllegalArgumentException(
+                    gender + " not found in the list of available genders. Please use one of the following: "
+                            + availableGenders);
+        }
+    }
+
+    public void setCalculateApproximateDateOfBirth(int age) {
+        if (age < 0) {
+            throw new IllegalArgumentException("Age cannot be negative.");
+        } else if (age > 120) {
+            throw new IllegalArgumentException("Age cannot be greater than 120.");
+        }
+        dateOfBirth = LocalDate.now().minusYears(age);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DisasterVictim) {
@@ -205,64 +252,16 @@ public class DisasterVictim extends Person implements ILoggable {
         return false;
     }
 
-    @Override
-    public String generateLog() {
-        ArrayList<String> supplies = new ArrayList<String>(), family = new ArrayList<String>(),
-                medical = new ArrayList<String>();
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
 
-        for (Supply supply : personalBelongings) {
-            supplies.add(supply.getType() + " x " + supply.getQuantity());
+    public void setDateOfBirth(String dateOfBirth) {
+        try {
+            setDateOfBirth(LocalDate.parse(dateOfBirth));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format. Please use yyyy-mm-dd.");
         }
-
-        for (FamilyRelation relation : familyConnections) {
-            DisasterVictim otherPerson = relation.getPersonOne().equals(this) ? relation.getPersonTwo()
-                    : relation.getPersonOne();
-            family.add(otherPerson.getFirstName());
-        }
-        Collections.sort(family);
-        for (MedicalRecord record : medicalRecords) {
-            medical.add(record.getDateOfTreatment() + " | " + record.getLocation().getName() + " | "
-                    + record.getTreatmentDetails());
-        }
-
-        String log = String.format("Name: %s\n" +
-                "Assigned Social ID: %d\n" +
-                "Entry Date: %s\n" +
-                "Comments: %s\n" +
-                "Dietary Restrictions: %s\n" +
-                "Medical Records: %s\n" +
-                "Personal Belongings: %s\n" +
-                "Family Connections: %s\n",
-                getFirstName() + " " + getLastName(),
-                getAssignedSocialID(),
-                getEntryDate(),
-                getComments(),
-                getDietaryRestrictions(),
-                medical.toString(),
-                supplies.toString(),
-                family.toString());
-
-        return log;
-    }
-
-    @Override
-    public void appendDetails(String details) {
-        comments += details;
-    }
-
-    @Override
-    public void saveToDatabase() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void loadFromDatabase() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void logQueries(ArrayList<String> queries) {
-        // TODO Auto-generated method stub
     }
 
     public static void main(String[] args) {

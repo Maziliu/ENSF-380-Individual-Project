@@ -89,14 +89,31 @@ public class DataGenerationGui {
         for (int i = 0; i < 100; i++) {
             Location location = new Location(locations[random.nextInt(locations.length)], "" + i);
             for (int j = 0; j < 10; j++) {
-                location.addOccupant(new DisasterVictim(
+                DisasterVictim victim = new DisasterVictim(
                         firstNames[random.nextInt(firstNames.length)],
                         lastNames[random.nextInt(lastNames.length)],
                         LocalDate.now().minusYears(j).minusMonths(j).minusDays(j),
                         null,
-                        "boy"));
+                        "boy");
+                location.addOccupant(victim);
+                DriverApplication.disasterVictims.add(victim);
             }
             DriverApplication.locations.add(location);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            Random rand = new Random();
+            DisasterVictim victim = null;
+            for (DisasterVictim v : DriverApplication.disasterVictims) {
+                if (v.getAssignedSocialID() == 0) {
+                    victim = v;
+                    break;
+                }
+            }
+
+            DisasterVictim victim2 = DriverApplication.disasterVictims
+                    .get(rand.nextInt(DriverApplication.disasterVictims.size()));
+            victim.addFamilyConnection(victim2, "sibling");
         }
     }
 }

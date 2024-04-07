@@ -1,39 +1,66 @@
 package edu.ucalgary.oop;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 
 public class Inquirer extends Person implements ILoggable {
+    private int inquirerID;
     private String servicesPhone, info;
-    private ArrayList<String> previousInteractions;
+    private ArrayList<InquirerLog> previousInteractions;
+    private ArrayList<InquirerLog> newInteractions;
+    private static int nextID = 0;
 
-    public Inquirer(String firstName, String lastName, String SERVICES_PHONE, String INFO) {
+    public Inquirer(String firstName, String lastName, String SERVICES_PHONE, String INFO, int id) {
         super(firstName);
         setLastName(lastName);
         setServicesPhone(SERVICES_PHONE);
         setInfo(INFO);
-        previousInteractions = new ArrayList<String>();
+        previousInteractions = new ArrayList<InquirerLog>();
+        newInteractions = new ArrayList<InquirerLog>();
+        inquirerID = id;
+
+        if (id >= nextID) {
+            nextID = id + 1;
+        }
     }
 
-    public String getServicesPhone() { return servicesPhone; }
-    public String getInfo() { return info; }
-    public ArrayList<String> getPreviousInteractions() { return previousInteractions; }
+    public Inquirer(String firstName, String lastName, String SERVICES_PHONE, String INFO) {
+        this(firstName, lastName, SERVICES_PHONE, INFO, nextID);
+    }
 
-    public void setServicesPhone(String phoneNumber) 
-    { 
+    public int getInquirerID() {
+        return inquirerID;
+    }
+
+    public String getServicesPhone() {
+        return servicesPhone;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public ArrayList<InquirerLog> getPreviousInteractions() {
+        return previousInteractions;
+    }
+
+    public void setServicesPhone(String phoneNumber) {
         if (phoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
             this.servicesPhone = phoneNumber;
-        }
-        else
-        {
+        } else {
             throw new IllegalArgumentException("Invalid phone number format");
         }
     }
 
-    public void setInfo(String info) { this.info = info; }
+    public void setInfo(String info) {
+        this.info = info;
+    }
 
-    public void addInteraction() { addInteraction(info); }
+    public void addInteraction(InquirerLog interaction) {
+        newInteractions.add(interaction);
+    }
 
-    public void addInteraction(String interaction) {
+    public void addPreviousInteraction(InquirerLog interaction) {
         previousInteractions.add(interaction);
     }
 
@@ -43,30 +70,29 @@ public class Inquirer extends Person implements ILoggable {
         log += "Services Phone: " + getServicesPhone() + "\n";
         log += "Info: " + getInfo() + "\n";
         log += "Previous Interactions: \n";
-        for (String interaction : previousInteractions) {
-            log += interaction + "\n";
+        for (InquirerLog interaction : previousInteractions) {
+            log += interaction.getCallDate() + " " + interaction.getDetails() + "\n";
+        }
+        for (InquirerLog interaction : newInteractions) {
+            log += interaction.getCallDate() + " " + interaction.getDetails() + "\n";
         }
         return log;
     }
 
     @Override
     public void appendDetails(String details) {
-        if (previousInteractions.size() > 0) {
-            previousInteractions.add(previousInteractions.size() - 1, details + "\n");
-        }
-        else
-        {
-            previousInteractions.add(details + "\n");
+        return;
+    }
+
+    @Override
+    public void saveToDatabase(Connection connection) {
+        for (InquirerLog interaction : newInteractions) {
+
         }
     }
 
     @Override
-    public void saveToDatabase() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void loadFromDatabase() {
+    public void loadFromDatabase(Connection connection) {
         // TODO Auto-generated method stub
     }
 
