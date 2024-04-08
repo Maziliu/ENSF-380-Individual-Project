@@ -1,6 +1,8 @@
 package edu.ucalgary.oop;
 
 import java.util.*;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -20,7 +22,7 @@ public class CentralGui extends AppGui {
 
     private void createMainPanel() {
         centralPanel = new JPanel(new CardLayout());
-        centralPanel.add(getDisasterVictimPanel(), "Disaster Victims");
+        centralPanel.add(new DisasterVictimsPanel(this), "Disaster Victims");
         centralPanel.add(getInquirersPanel(), "Inquirers");
         centralPanel.add(new JPanel(), "Generate Data");
         centralPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -67,18 +69,47 @@ public class CentralGui extends AppGui {
         return centralPanel;
     }
 
-    private void updateDisasterVictimTable(JTextField searchBar, DefaultTableModel model) {
-        String searchText = searchBar.getText();
-        ArrayList<Pair<DisasterVictim, Location>> results = searchDisasterVictim(searchText);
-        model.setRowCount(0);
+    private Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
+        JFrame popupFrame = new JFrame(title);
+        popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        for (Pair<DisasterVictim, Location> result : results) {
-            model.addRow(new Object[] { result.first.getAssignedSocialID(), result.first.getFirstName(),
-                    result.first.getLastName(), result.second.getName() });
+        JPanel popupPanel = new JPanel(new BorderLayout(10, 10));
+        popupPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+
+        for (Pair<Object, Object> field : fields) {
+            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            rowPanel.add(new JLabel(field.first.toString()));
+            rowPanel.add((Component) field.second);
+            detailsPanel.add(rowPanel);
         }
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        popupPanel.add(detailsPanel, BorderLayout.CENTER);
+        popupPanel.add(buttonPanel, BorderLayout.SOUTH);
+        popupFrame.add(popupPanel);
+        popupFrame.pack();
+        popupFrame.setLocationRelativeTo(null);
+
+        Map<String, Object> returnList = new HashMap<>();
+        returnList.put("frame", popupFrame);
+        returnList.put("popupPanel", popupPanel);
+        returnList.put("detailsPanel", detailsPanel);
+        returnList.put("buttonPanel", buttonPanel);
+        returnList.put("saveButton", saveButton);
+        returnList.put("cancelButton", cancelButton);
+
+        return returnList;
     }
 
-    private void updateinquirerTable(JTextField searchBar, DefaultTableModel model) {
+    private void updateInquirerTable(JTextField searchBar, DefaultTableModel model) {
         String searchText = searchBar.getText();
         ArrayList<Inquirer> results = searchInquirer(searchText);
         model.setRowCount(0);
@@ -89,248 +120,27 @@ public class CentralGui extends AppGui {
         }
     }
 
-    private void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
-            JTextField searchBar, DefaultTableModel model) {
-        JFrame popupFrame = new JFrame("Victim Information");
-        popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        JPanel popupPanel = new JPanel(new BorderLayout(10, 10));
-        popupPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-
-        JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        idPanel.add(new JLabel("ID: "));
-        idPanel.add(new JLabel(id));
-        detailsPanel.add(idPanel);
-
-        String[] labels = { "First Name:", "Last Name:" };
-        JTextField[] textFields = { new JTextField(firstName), new JTextField(lastName) };
-        for (int i = 0; i < labels.length; i++) {
-            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            rowPanel.add(new JLabel(labels[i]));
-            textFields[i].setColumns(20);
-            rowPanel.add(textFields[i]);
-            detailsPanel.add(rowPanel);
-        }
-
-        JPanel locationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        locationPanel.add(new JLabel("Location: "));
-        JComboBox<String> locationComboBox = new JComboBox<>();
-        for (Location l : DriverApplication.locations) {
-            locationComboBox.addItem(l.getName());
-        }
-        locationComboBox.setSelectedItem(location);
-        locationPanel.add(locationComboBox);
-        detailsPanel.add(locationPanel);
-
-        DisasterVictim victim = null;
-        for (DisasterVictim v : DriverApplication.disasterVictims) {
-            if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
-                victim = v;
-                break;
-            }
-        }
-
-        if (victim != null) {
-            JPanel infoPanel = new JPanel(new BorderLayout());
-            infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Optional, for padding
-
-            String[] columnNames = { "Name", "Relation" };
-            ArrayList<Object[]> dataList = new ArrayList<>();
-
-            for (FamilyRelation connection : victim.getFamilyConnections()) {
-                DisasterVictim other = connection.getPersonOne().equals(victim) ? connection.getPersonTwo()
-                        : connection.getPersonOne();
-                dataList.add(
-                        new Object[] { other.getFirstName() + " " + other.getLastName(), connection.getRelation() });
-            }
-
-            Object[][] data = dataList.toArray(new Object[0][]);
-
-            DefaultTableModel modelInner = new DefaultTableModel(data, columnNames) {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false;
-                }
-            };
-            JTable resultsTable = new JTable(modelInner);
-            JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
-            resultsScrollPane.setPreferredSize(new Dimension(450, 150));
-
-            infoPanel.add(resultsScrollPane, BorderLayout.CENTER);
-            detailsPanel.add(infoPanel);
-        }
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
-
-        popupPanel.add(detailsPanel, BorderLayout.CENTER);
-        popupPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String updatedFirstName = textFields[0].getText();
-                String updatedLastName = textFields[1].getText();
-                String updatedLocation = locationComboBox.getSelectedItem().toString();
-
-                DisasterVictim victim = null;
-                for (Location l : DriverApplication.locations) {
-                    for (DisasterVictim v : l.getOccupants()) {
-                        if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
-                            victim = v;
-                            break;
-                        }
-                    }
-                }
-
-                if (victim != null) {
-                    victim.setFirstName(updatedFirstName);
-                    victim.setLastName(updatedLastName);
-
-                    for (Location l : DriverApplication.locations) {
-                        if (l.getName().equals(location)) {
-                            l.removeOccupant(victim);
-                            break;
-                        }
-                    }
-
-                    for (Location l : DriverApplication.locations) {
-                        if (l.getName().equals(updatedLocation)) {
-                            l.addOccupant(victim);
-                            break;
-                        }
-                    }
-                }
-                updateDisasterVictimTable(searchBar, model);
-                popupFrame.dispose();
-            }
-        });
-
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                popupFrame.dispose();
-            }
-        });
-
-        popupFrame.add(popupPanel);
-        popupFrame.pack();
-        popupFrame.setLocationRelativeTo(null);
-        popupFrame.setVisible(true);
-    }
-
-    private JPanel getDisasterVictimPanel() {
-        JPanel container = new JPanel(new BorderLayout());
-        JPanel searchBarPanel = new JPanel(new BorderLayout());
-        JLabel searchLabel = new JLabel("Search for victims in all locations: ");
-        JTextField searchBar = new JTextField();
-        searchBarPanel.add(searchLabel, BorderLayout.WEST);
-        searchBarPanel.add(searchBar, BorderLayout.CENTER);
-        container.add(searchBarPanel, BorderLayout.NORTH);
-
-        String[] columnNames = { "Id", "FirstName", "LastName", "Location" };
-        Object[][] data = {};
-        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        JTable resultsTable = new JTable(model);
-        JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
-        container.add(resultsScrollPane, BorderLayout.CENTER);
-
-        updateDisasterVictimTable(searchBar, model);
-
-        resultsTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int row = resultsTable.getSelectedRow();
-                if (row >= 0) {
-                    String id = resultsTable.getValueAt(row, 0).toString();
-                    String firstName = resultsTable.getValueAt(row, 1).toString();
-                    String lastName = resultsTable.getValueAt(row, 2).toString();
-                    String location = resultsTable.getValueAt(row, 3).toString();
-                    displayVictimInfoPopup(id, firstName, lastName, location, searchBar, model);
-                }
-            }
-        });
-
-        searchBar.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                updateDisasterVictimTable(searchBar, model);
-            }
-        });
-
-        return container;
-    }
-
-    private ArrayList<Pair<DisasterVictim, Location>> searchDisasterVictim(String searchText) {
-        ArrayList<Pair<DisasterVictim, Location>> results = new ArrayList<>();
-
-        for (Location location : DriverApplication.locations) {
-            for (DisasterVictim victim : location.getOccupants()) {
-                if (victim.getFirstName().toLowerCase().contains(searchText.toLowerCase())
-                        || victim.getLastName().toLowerCase().contains(searchText.toLowerCase())
-                        || location.getName().toLowerCase().contains(searchText.toLowerCase())
-                        || Integer.toString(victim.getAssignedSocialID()).equals(searchText)) {
-                    results.add(new Pair<DisasterVictim, Location>(victim, location));
-                }
-            }
-        }
-
-        return results;
-    }
-
     private void displayInquirerInfoPopup(String phoneNumber, String firstName, String lastName, JTextField searchBar,
             DefaultTableModel model) {
-        JFrame popupFrame = new JFrame("Inquirer Information");
-        popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel popupPanel = new JPanel(new BorderLayout(10, 10));
-        popupPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
+        fields.add(new Pair<Object, Object>("Phone Number:", new JLabel(phoneNumber)));
+        fields.add(new Pair<Object, Object>("First Name:", new JTextField(firstName, 20)));
+        fields.add(new Pair<Object, Object>("Last Name:", new JTextField(lastName, 20)));
 
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+        Map<String, Object> components = generatePopupFrameComponents("Inquirer Information", fields);
+        JFrame popupFrame = (JFrame) components.get("frame");
+        JPanel detailsPanel = (JPanel) components.get("detailsPanel");
 
-        JPanel phonePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        phonePanel.add(new JLabel("Phone Number: "));
-        phonePanel.add(new JLabel(phoneNumber));
-        detailsPanel.add(phonePanel);
+        final Inquirer inquirer = findInquirerByPhoneNumber(phoneNumber);
 
-        String[] labels = { "First Name:", "Last Name:" };
-        JTextField firstNameField = new JTextField(firstName, 20);
-        JTextField lastNameField = new JTextField(lastName, 20);
-        JTextField[] fields = { firstNameField, lastNameField };
+        JPanel infoPanel = new JPanel(new BorderLayout());
+        infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        for (int i = 0; i < labels.length; i++) {
-            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            rowPanel.add(new JLabel(labels[i]));
-            rowPanel.add(fields[i]);
-            detailsPanel.add(rowPanel);
-        }
-
-        Inquirer inquirer = null;
-        for (Inquirer i : DriverApplication.inquirers) {
-            if (i.getServicesPhone().equals(phoneNumber)
-                    && i.getFirstName().equals(firstName)) {
-                inquirer = i;
-                break;
-            }
-        }
+        String[] columnNames = { "Inquirer", "Date", "Details" };
+        ArrayList<Object[]> dataList = new ArrayList<>();
 
         if (inquirer != null) {
-            JPanel infoPanel = new JPanel(new BorderLayout());
-            infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Optional, for padding
-
-            String[] columnNames = { "Inquirer", "Date", "Details" };
-            ArrayList<Object[]> dataList = new ArrayList<>();
 
             for (InquirerLog log : inquirer.getPreviousInteractions()) {
                 dataList.add(new Object[] { log.getInquirer().getFirstName() + " " + log.getInquirer().getLastName(),
@@ -338,48 +148,57 @@ public class CentralGui extends AppGui {
                         log.getDetails() });
             }
 
-            Object[][] data = dataList.toArray(new Object[0][]);
-
-            DefaultTableModel modelInner = new DefaultTableModel(data, columnNames) {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false;
-                }
-            };
-            JTable resultsTable = new JTable(modelInner);
-            JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
-            resultsScrollPane.setPreferredSize(new Dimension(450, 150));
-
-            infoPanel.add(resultsScrollPane, BorderLayout.CENTER);
-            detailsPanel.add(infoPanel);
         }
 
+        Object[][] data = dataList.toArray(new Object[0][]);
+
+        DefaultTableModel modelInner = new DefaultTableModel(data, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        JTable resultsTable = new JTable(modelInner);
+        JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
+        resultsScrollPane.setPreferredSize(new Dimension(450, 150));
+
+        infoPanel.add(resultsScrollPane, BorderLayout.CENTER);
+        detailsPanel.add(infoPanel);
+
+        JButton saveButton = (JButton) components.get("saveButton");
+        JButton cancelButton = (JButton) components.get("cancelButton");
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
+        JPanel addLogPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel addLogLabel = new JLabel("Add Log: ");
+        JTextArea addLogTextArea = new JTextArea(5, 40);
+        JButton addLogButton = new JButton("Add Log");
+
+        addLogPanel.add(addLogLabel);
+        addLogPanel.add(addLogTextArea);
+        buttonPanel.add(addLogButton);
+
+        detailsPanel.add(addLogPanel);
+        detailsPanel.add(buttonPanel);
+
+        popupFrame.pack();
+        popupFrame.setVisible(true);
 
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String updatedFirstName = fields[0].getText();
-                String updatedLastName = fields[1].getText();
-
-                Inquirer inquirer = null;
-                for (Inquirer i : DriverApplication.inquirers) {
-                    if (i.getServicesPhone().equals(phoneNumber)) {
-                        inquirer = i;
-                        break;
-                    }
-                }
+                String updatedFirstName = ((JTextField) fields.get(1).second).getText();
+                String updatedLastName = ((JTextField) fields.get(2).second).getText();
 
                 if (inquirer != null) {
                     inquirer.setFirstName(updatedFirstName);
                     inquirer.setLastName(updatedLastName);
                 }
 
-                updateinquirerTable(searchBar, model);
+                updateInquirerTable(searchBar, model);
+
+                inquirer.saveToDatabase();
+
                 popupFrame.dispose();
             }
         });
@@ -391,13 +210,20 @@ public class CentralGui extends AppGui {
             }
         });
 
-        popupPanel.add(detailsPanel, BorderLayout.CENTER);
-        popupPanel.add(buttonPanel, BorderLayout.SOUTH);
+        addLogButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String logDetails = addLogTextArea.getText();
+                InquirerLog log = new InquirerLog(inquirer, logDetails, LocalDate.now());
+                inquirer.addInteraction(log);
+                dataList.add(new Object[] { inquirer.getFirstName() + " " + inquirer.getLastName(), LocalDate.now(),
+                        logDetails });
+                modelInner.addRow(new Object[] { inquirer.getFirstName() + " " + inquirer.getLastName(),
+                        LocalDate.now(), logDetails });
+                addLogTextArea.setText("");
+            }
+        });
 
-        popupFrame.add(popupPanel);
-        popupFrame.pack();
-        popupFrame.setLocationRelativeTo(null);
-        popupFrame.setVisible(true);
     }
 
     private JPanel getInquirersPanel() {
@@ -419,9 +245,13 @@ public class CentralGui extends AppGui {
         };
         JTable resultsTable = new JTable(model);
         JScrollPane resultsScrollPane = new JScrollPane(resultsTable);
-        searchBarPanel.add(resultsScrollPane, BorderLayout.SOUTH);
+        container.add(resultsScrollPane, BorderLayout.CENTER);
 
-        updateinquirerTable(searchBar, model);
+        updateInquirerTable(searchBar, model);
+
+        JButton addInquirerButton = new JButton("Add Inquirer");
+        container.add(addInquirerButton, BorderLayout.SOUTH);
+
         resultsTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -438,24 +268,105 @@ public class CentralGui extends AppGui {
         searchBar.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                updateinquirerTable(searchBar, model);
+                updateInquirerTable(searchBar, model);
+            }
+        });
+
+        addInquirerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
+                fields.add(new Pair<Object, Object>("First Name:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Last Name:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Phone Number:", new JTextField(20)));
+
+                Map<String, Object> components = generatePopupFrameComponents("Add Inquirer", fields);
+                JFrame popupFrame = (JFrame) components.get("frame");
+                JButton saveButton = (JButton) components.get("saveButton");
+                JButton cancelButton = (JButton) components.get("cancelButton");
+
+                saveButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String firstName = ((JTextField) fields.get(0).second).getText();
+                        String lastName = ((JTextField) fields.get(1).second).getText();
+                        String phoneNumber = ((JTextField) fields.get(2).second).getText();
+
+                        Inquirer inquirer = new Inquirer(firstName, lastName, phoneNumber, "info");
+                        DriverApplication.inquirers.add(inquirer);
+                        inquirer.saveToDatabase();
+                        updateInquirerTable(searchBar, model);
+                        popupFrame.dispose();
+                    }
+                });
+
+                cancelButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        popupFrame.dispose();
+                    }
+                });
+
+                popupFrame.pack();
+                popupFrame.setVisible(true);
             }
         });
 
         return container;
     }
 
+    private Inquirer findInquirerByPhoneNumber(String phoneNumber) {
+        for (Inquirer i : DriverApplication.inquirers) {
+            if (i.getServicesPhone().equals(phoneNumber)) {
+                return i;
+            }
+        }
+        return null;
+    }
+
     private ArrayList<Inquirer> searchInquirer(String searchText) {
-        ArrayList<Inquirer> results = new ArrayList<>();
+        Map<Inquirer, Integer> scores = new HashMap<>();
+        String[] searchWords = searchText.toLowerCase().split("\\s+");
 
         for (Inquirer inquirer : DriverApplication.inquirers) {
-            if (inquirer.getFirstName().toLowerCase().contains(searchText.toLowerCase())
-                    || inquirer.getLastName().toLowerCase().contains(searchText.toLowerCase())
-                    || inquirer.getServicesPhone().contains(searchText)) {
-                results.add(inquirer);
+            if (matchesAllCriteria(inquirer, searchWords)) {
+                int score = calculateScore(inquirer, searchWords);
+                scores.put(inquirer, score);
             }
         }
 
+        List<Map.Entry<Inquirer, Integer>> sortedEntries = new ArrayList<>(scores.entrySet());
+        sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        ArrayList<Inquirer> results = new ArrayList<>();
+        for (Map.Entry<Inquirer, Integer> entry : sortedEntries) {
+            results.add(entry.getKey());
+        }
+
         return results;
+    }
+
+    private boolean matchesAllCriteria(Inquirer inquirer, String[] searchWords) {
+        for (String word : searchWords) {
+            if (!(inquirer.getFirstName().toLowerCase().contains(word) ||
+                    inquirer.getLastName().toLowerCase().contains(word) ||
+                    inquirer.getServicesPhone().toLowerCase().contains(word))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int calculateScore(Inquirer inquirer, String[] searchWords) {
+        int score = 0;
+        for (String word : searchWords) {
+            if (inquirer.getFirstName().toLowerCase().contains(word))
+                score += 1;
+            if (inquirer.getLastName().toLowerCase().contains(word))
+                score += 1;
+            if (inquirer.getServicesPhone().toLowerCase().contains(word))
+                score += 1;
+        }
+        return score;
     }
 }

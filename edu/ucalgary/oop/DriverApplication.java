@@ -76,9 +76,8 @@ public class DriverApplication extends AppGui {
 
                 inquirers.add(inquirer);
             }
-            resultSet.close(); // Close the ResultSet to free resources
+            resultSet.close();
 
-            // Next, load all inquiry logs
             ResultSet logResultSet = statement.executeQuery("SELECT * FROM INQUIRY_LOG");
             while (logResultSet.next()) {
                 int inquirerID = logResultSet.getInt("inquirer"); // Assuming correct column name is 'inquirerID'
@@ -91,7 +90,7 @@ public class DriverApplication extends AppGui {
                             logResultSet.getDate("callDate").toLocalDate()));
                 }
             }
-            logResultSet.close(); // Close the ResultSet to free resources
+            logResultSet.close();
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);

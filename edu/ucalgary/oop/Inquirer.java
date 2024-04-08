@@ -1,7 +1,9 @@
 package edu.ucalgary.oop;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.util.ArrayList;
+
+import javax.swing.plaf.nimbus.State;
 
 public class Inquirer extends Person implements ILoggable {
     private int inquirerID;
@@ -80,19 +82,60 @@ public class Inquirer extends Person implements ILoggable {
     }
 
     @Override
-    public void appendDetails(String details) {
-        return;
-    }
+    public void saveToDatabase() {
+        Connection connection = null;
+        try {
+            connection = DriverApplication.getConnection(); // Obtain connection
 
-    @Override
-    public void saveToDatabase(Connection connection) {
-        for (InquirerLog interaction : newInteractions) {
+            // Check if the inquirer exists
+            String selectQuery = "SELECT * FROM INQUIRER WHERE id = ?";
+            try (PreparedStatement checkStmt = connection.prepareStatement(selectQuery)) {
+                checkStmt.setInt(1, inquirerID);
+                try (ResultSet resultSet = checkStmt.executeQuery()) {
+                    if (!resultSet.next()) {
+                        String insertInquirerQuery = "INSERT INTO INQUIRER (id, firstName, lastName, phoneNumber) VALUES (?, ?, ?, ?)";
+                        try (PreparedStatement insertStmt = connection.prepareStatement(insertInquirerQuery)) {
+                            insertStmt.setInt(1, inquirerID);
+                            insertStmt.setString(2, getFirstName());
+                            insertStmt.setString(3, getLastName());
+                            insertStmt.setString(4, getServicesPhone());
+                            insertStmt.executeUpdate();
+                        }
+                    }
+                }
+            }
 
+            // Insert new interactions
+            int maxId = 0;
+            String maxIdQuery = "SELECT MAX(id) AS maxId FROM INQUIRY_LOG";
+            try (Statement maxIdStmt = connection.createStatement();
+                    ResultSet rs = maxIdStmt.executeQuery(maxIdQuery)) {
+                if (rs.next()) {
+                    maxId = rs.getInt("maxId") + 1;
+                }
+            }
+
+            String insertLogQuery = "INSERT INTO INQUIRY_LOG (id, inquirer, callDate, details) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement insertLogStmt = connection.prepareStatement(insertLogQuery)) {
+                for (InquirerLog interaction : newInteractions) {
+                    insertLogStmt.setInt(1, maxId++);
+                    insertLogStmt.setInt(2, inquirerID);
+                    insertLogStmt.setDate(3, Date.valueOf(interaction.getCallDate()));
+                    insertLogStmt.setString(4, interaction.getDetails());
+                    insertLogStmt.addBatch();
+                }
+                insertLogStmt.executeBatch();
+            }
+
+            previousInteractions.addAll(newInteractions);
+            newInteractions.clear();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public void loadFromDatabase(Connection connection) {
+    public void loadFromDatabase() {
         // TODO Auto-generated method stub
     }
 

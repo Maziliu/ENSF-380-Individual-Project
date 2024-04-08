@@ -6,11 +6,9 @@ import java.util.ArrayList;
 public interface ILoggable {
     public String generateLog();
 
-    public void appendDetails(String details);
+    public void saveToDatabase();
 
-    public void saveToDatabase(Connection connection);
-
-    public void loadFromDatabase(Connection connection);
+    public void loadFromDatabase();
 
     public void logQueries(ArrayList<String> queries);
 }
