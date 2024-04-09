@@ -1,3 +1,8 @@
+/**
+ * The DataGeneration class is responsible for generating random data for disaster victims and supplies.
+ * It contains methods to generate supplies, generate victims, and generate data for locations.
+ * The generated data is stored in the DriverApplication class.
+ */
 package edu.ucalgary.oop;
 
 import java.io.File;
@@ -93,6 +98,12 @@ public class DataGeneration {
             "Bulimia", "Malnutrition", "Dehydration", "Electrolyte Imbalance", "Vitamin Deficiency",
     };
 
+    /**
+     * Generates a list of supplies with random quantities. The supplies are added
+     * to the DriverApplication supplies list.
+     * 
+     * @return the list of generated supplies
+     */
     private static ArrayList<Supply> generateSupplies() {
         ArrayList<Supply> generatedSupplies = new ArrayList<>();
         Random random = new Random();
@@ -105,6 +116,12 @@ public class DataGeneration {
         return generatedSupplies;
     }
 
+    /**
+     * Generates a list of victims with random attributes. The victims are added to
+     * the DriverApplication disasterVictims list.
+     * 
+     * @return the list of generated victims
+     */
     private static ArrayList<DisasterVictim> generateVictims() {
         ArrayList<DisasterVictim> victims = new ArrayList<>();
         ArrayList<String> availableGenders = new ArrayList<String>();
@@ -143,6 +160,14 @@ public class DataGeneration {
         return victims;
     }
 
+    /**
+     * Generates data for locations, victims, supplies, medical records, and
+     * personal belongings.
+     * The generated data is added to the DriverApplication class.
+     * The method is called when the application is started.
+     * The data is randomly generated using the generateSupplies and generateVictims
+     * methods.
+     */
     public static void generateData() {
 
         // Generate Locations and Victims
@@ -160,22 +185,6 @@ public class DataGeneration {
             }
 
             DriverApplication.locations.add(location);
-        }
-
-        // Add Family Connections
-        for (int i = 0; i < 4; i++) {
-            Random rand = new Random();
-            DisasterVictim victim = null;
-            for (DisasterVictim v : DriverApplication.disasterVictims) {
-                if (v.getAssignedSocialID() == 0) {
-                    victim = v;
-                    break;
-                }
-            }
-
-            DisasterVictim victim2 = DriverApplication.disasterVictims
-                    .get(rand.nextInt(DriverApplication.disasterVictims.size()));
-            victim.addFamilyConnection(victim2, "sibling");
         }
 
         // Add Medical Records

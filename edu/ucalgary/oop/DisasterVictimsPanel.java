@@ -359,6 +359,21 @@ public class DisasterVictimsPanel extends JPanel {
         return tablePanel;
     }
 
+    private static JTable getTableFromScrollPane(Container container) {
+        Component comp = container.getLayout() instanceof BorderLayout
+                ? ((BorderLayout) container.getLayout()).getLayoutComponent(BorderLayout.CENTER)
+                : null;
+
+        if (comp instanceof JScrollPane) {
+            JScrollPane scrollPane = (JScrollPane) comp;
+            Component view = scrollPane.getViewport().getView();
+            if (view instanceof JTable) {
+                return (JTable) view;
+            }
+        }
+        return null;
+    }
+
     private void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
             JTextField searchBar, DefaultTableModel model) {
 
@@ -404,6 +419,53 @@ public class DisasterVictimsPanel extends JPanel {
                 "Medical Records");
         detailsPanel.add(medicalRecordsPanel);
 
+        JTable medicalRecordTable = getTableFromScrollPane(medicalRecordsPanel);
+
+        medicalRecordTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = medicalRecordTable.getSelectedRow();
+                if (row >= 0) {
+                    // Remove medical record
+                    String date = medicalRecordTable.getValueAt(row, 0).toString();
+                    String location = medicalRecordTable.getValueAt(row, 1).toString();
+                    String details = medicalRecordTable.getValueAt(row, 2).toString();
+
+                    DisasterVictim victim = null;
+                    for (DisasterVictim v : DriverApplication.disasterVictims) {
+                        if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
+                            victim = v;
+                            break;
+                        }
+                    }
+
+                    for (MedicalRecord record : victim.getMedicalRecords()) {
+                        if (record.getDateOfTreatment().toString().equals(date)
+                                && record.getLocation().getName().equals(location)
+                                && record.getTreatmentDetails().equals(details)) {
+                            victim.removeMedicalRecord(record);
+                            break;
+                        }
+                    }
+
+                    ArrayList<Object[]> dataList = new ArrayList<>();
+                    for (MedicalRecord record : victim.getMedicalRecords()) {
+                        dataList.add(new Object[] { record.getDateOfTreatment(), record.getLocation().getName(),
+                                record.getTreatmentDetails() });
+                    }
+
+                    DefaultTableModel model = (DefaultTableModel) medicalRecordTable.getModel();
+                    model.setRowCount(0);
+                    for (Object[] data : dataList) {
+                        model.addRow(data);
+                    }
+
+                    medicalRecordTable.revalidate();
+                    medicalRecordTable.repaint();
+
+                }
+            }
+        });
+
         JPanel centeringPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
         JButton addMedicalRecordButton = new JButton("Add Medical Record");
@@ -414,19 +476,17 @@ public class DisasterVictimsPanel extends JPanel {
                 ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
                 ArrayList<Location> locations = new ArrayList<>();
 
-                if (!(appGui instanceof CentralGui)) {
-                    Location loc = null;
-                    for (Location l : DriverApplication.locations) {
-                        for (DisasterVictim v : l.getOccupants()) {
-                            if (v.getAssignedSocialID() == Integer.parseInt(id)) {
-                                loc = l;
-                                break;
-                            }
+                Location loc = null;
+                for (Location l : DriverApplication.locations) {
+                    for (DisasterVictim v : l.getOccupants()) {
+                        if (v.getAssignedSocialID() == Integer.parseInt(id)) {
+                            loc = l;
+                            break;
                         }
                     }
-
-                    locations.add(loc);
                 }
+
+                locations.add(loc);
 
                 JComboBox<String> locationsComboBox = new JComboBox<>();
                 for (Location l : locations) {
@@ -505,6 +565,56 @@ public class DisasterVictimsPanel extends JPanel {
                 "Family Connections");
         detailsPanel.add(familyConnectionsPanel);
 
+        JTable table = getTableFromScrollPane(familyConnectionsPanel);
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = table.getSelectedRow();
+                // Rmove family connection
+                if (row >= 0) {
+                    String otherId = table.getValueAt(row, 0).toString();
+                    String relation = table.getValueAt(row, 2).toString();
+                    DisasterVictim other = null;
+                    for (DisasterVictim v : DriverApplication.disasterVictims) {
+                        if (Integer.toString(v.getAssignedSocialID()).equals(otherId)) {
+                            other = v;
+                            break;
+                        }
+                    }
+
+                    DisasterVictim currentPerson = null;
+                    for (DisasterVictim v : DriverApplication.disasterVictims) {
+                        if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
+                            currentPerson = v;
+                            break;
+                        }
+                    }
+
+                    currentPerson.removeFamilyConnection(other, relation);
+
+                    ArrayList<Object[]> dataList = new ArrayList<>();
+
+                    for (FamilyRelation connection : currentPerson.getFamilyConnections()) {
+                        DisasterVictim otherPerson = connection.getPersonOne().equals(currentPerson)
+                                ? connection.getPersonTwo()
+                                : connection.getPersonOne();
+                        dataList.add(new Object[] { otherPerson.getAssignedSocialID(),
+                                otherPerson.getFirstName() + " " + otherPerson.getLastName(),
+                                connection.getRelation() });
+                    }
+
+                    DefaultTableModel model = (DefaultTableModel) table.getModel();
+                    model.setRowCount(0);
+                    for (Object[] data : dataList) {
+                        model.addRow(data);
+                    }
+
+                    table.revalidate();
+                    table.repaint();
+                }
+
+            }
+        });
+
         JButton addFamilyConnectionButton = new JButton("Add Family Connection");
 
         addFamilyConnectionButton.addActionListener(new ActionListener() {
@@ -547,6 +657,7 @@ public class DisasterVictimsPanel extends JPanel {
                 popupFrame.setVisible(true);
 
                 saveButton.addActionListener(new ActionListener() {
+                    @SuppressWarnings("unchecked")
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         String person = ((JComboBox<String>) fields.get(0).second).getSelectedItem().toString();
@@ -586,10 +697,10 @@ public class DisasterVictimsPanel extends JPanel {
             }
         });
 
+        centeringPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        centeringPanel.add(addFamilyConnectionButton);
+        detailsPanel.add(centeringPanel, BorderLayout.SOUTH);
         if (appGui instanceof LocalGui) {
-            centeringPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            centeringPanel.add(addFamilyConnectionButton);
-            detailsPanel.add(centeringPanel, BorderLayout.SOUTH);
 
             dataList = new ArrayList<>();
             columnNames = new String[] { "Type", "Quantity" };
@@ -644,6 +755,7 @@ public class DisasterVictimsPanel extends JPanel {
                     popupFrame.setVisible(true);
 
                     saveButton.addActionListener(new ActionListener() {
+                        @SuppressWarnings("unchecked")
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             String supply = ((JComboBox<String>) fields.get(0).second).getSelectedItem().toString();

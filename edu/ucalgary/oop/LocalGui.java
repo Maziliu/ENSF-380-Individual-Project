@@ -26,7 +26,7 @@ public class LocalGui extends AppGui {
         fileMenu.add(exitItem);
 
         JMenu optionsMenu = new JMenu("Options");
-        String[] options = { "DisasterVictims" };
+        String[] options = {"DisasterVictims"};
 
         for (String option : options) {
             JMenuItem menuItem = new JMenuItem(option);

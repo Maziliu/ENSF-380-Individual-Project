@@ -173,6 +173,10 @@ public class DisasterVictim extends Person {
     }
 
     public void addFamilyConnection(DisasterVictim personTwo, String relationType) {
+        if (this.equals(personTwo)) {
+            throw new IllegalArgumentException("Cannot add self as family connection");
+        }
+
         FamilyRelation newFamilyRelation = new FamilyRelation(this, personTwo, relationType);
 
         for (FamilyRelation relation : personTwo.getFamilyConnections()) {
