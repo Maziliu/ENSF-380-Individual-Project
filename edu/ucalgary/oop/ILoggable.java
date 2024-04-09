@@ -1,14 +1,13 @@
 package edu.ucalgary.oop;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 
 public interface ILoggable {
-    public String generateLog();
+    String generateLog();
 
-    public void saveToDatabase();
+    void saveToDatabase();
 
-    public void loadFromDatabase();
+    void loadFromDatabase();
 
-    public void logQueries(ArrayList<String> queries);
+    void logQueries(ArrayList<String> queries);
 }

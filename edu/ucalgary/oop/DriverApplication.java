@@ -6,17 +6,16 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class DriverApplication extends AppGui {
-    private static Connection connection;
-    private AppGui appGui = null;
-
     public static ArrayList<DisasterVictim> disasterVictims = new ArrayList<>();
     public static ArrayList<Inquirer> inquirers = new ArrayList<>();
     public static ArrayList<Location> locations = new ArrayList<>();
     public static ArrayList<Supply> supplies = new ArrayList<>();
+    private static Connection connection;
+    private final AppGui appGui = null;
 
     public DriverApplication() {
         createConnection();
-        DataGenerationGui.generateData();
+        DataGeneration.generateData();
         loadInquirers();
 
         frame = new JFrame("Relief Services Application");
@@ -26,16 +25,20 @@ public class DriverApplication extends AppGui {
         initializeMenuBar();
     }
 
+    public static Connection getConnection() {
+        return connection;
+    }
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(DriverApplication::new);
+    }
+
     private void createConnection() {
         try {
             connection = DriverManager.getConnection("jdbc:postgresql://localhost/ensf380project", "oop", "ucalgary");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    public static Connection getConnection() {
-        return connection;
     }
 
     private void initializeMenuBar() {
@@ -116,9 +119,5 @@ public class DriverApplication extends AppGui {
     @Override
     public JMenuBar createMenuBar() {
         return appGui.createMenuBar();
-    }
-
-    public static void main(String[] args) {
-        EventQueue.invokeLater(() -> new DriverApplication());
     }
 }

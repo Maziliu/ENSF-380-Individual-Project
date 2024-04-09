@@ -1,16 +1,15 @@
 package edu.ucalgary.oop;
 
-import java.util.*;
-import java.util.List;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CentralGui extends AppGui {
     private JPanel centralPanel;
@@ -37,7 +36,7 @@ public class CentralGui extends AppGui {
         fileMenu.add(exitItem);
 
         JMenu optionsMenu = new JMenu("Options");
-        String[] options = { "Disaster Victims", "Inquirers" };
+        String[] options = {"Disaster Victims", "Inquirers"};
 
         for (String option : options) {
             JMenuItem menuItem = new JMenuItem(option);
@@ -115,12 +114,12 @@ public class CentralGui extends AppGui {
 
         for (Inquirer result : results) {
             model.addRow(
-                    new Object[] { result.getFirstName(), result.getLastName(), result.getServicesPhone() });
+                    new Object[]{result.getFirstName(), result.getLastName(), result.getServicesPhone()});
         }
     }
 
     private void displayInquirerInfoPopup(String phoneNumber, String firstName, String lastName, JTextField searchBar,
-            DefaultTableModel model) {
+                                          DefaultTableModel model) {
 
         ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
         fields.add(new Pair<Object, Object>("Phone Number:", new JLabel(phoneNumber)));
@@ -136,15 +135,15 @@ public class CentralGui extends AppGui {
         JPanel infoPanel = new JPanel(new BorderLayout());
         infoPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        String[] columnNames = { "Inquirer", "Date", "Details" };
+        String[] columnNames = {"Inquirer", "Date", "Details"};
         ArrayList<Object[]> dataList = new ArrayList<>();
 
         if (inquirer != null) {
 
             for (InquirerLog log : inquirer.getPreviousInteractions()) {
-                dataList.add(new Object[] { log.getInquirer().getFirstName() + " " + log.getInquirer().getLastName(),
+                dataList.add(new Object[]{log.getInquirer().getFirstName() + " " + log.getInquirer().getLastName(),
                         log.getCallDate(),
-                        log.getDetails() });
+                        log.getDetails()});
             }
 
         }
@@ -215,10 +214,10 @@ public class CentralGui extends AppGui {
                 String logDetails = addLogTextArea.getText();
                 InquirerLog log = new InquirerLog(inquirer, logDetails, LocalDate.now());
                 inquirer.addInteraction(log);
-                dataList.add(new Object[] { inquirer.getFirstName() + " " + inquirer.getLastName(), LocalDate.now(),
-                        logDetails });
-                modelInner.addRow(new Object[] { inquirer.getFirstName() + " " + inquirer.getLastName(),
-                        LocalDate.now(), logDetails });
+                dataList.add(new Object[]{inquirer.getFirstName() + " " + inquirer.getLastName(), LocalDate.now(),
+                        logDetails});
+                modelInner.addRow(new Object[]{inquirer.getFirstName() + " " + inquirer.getLastName(),
+                        LocalDate.now(), logDetails});
                 addLogTextArea.setText("");
             }
         });
@@ -234,7 +233,7 @@ public class CentralGui extends AppGui {
         searchBarPanel.add(searchBar, BorderLayout.CENTER);
         container.add(searchBarPanel, BorderLayout.NORTH);
 
-        String[] columnNames = { "First Name", "Last Name", "Phone Number" };
+        String[] columnNames = {"First Name", "Last Name", "Phone Number"};
         Object[][] data = {};
         DefaultTableModel model = new DefaultTableModel(data, columnNames) {
             @Override

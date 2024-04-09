@@ -1,6 +1,6 @@
 package edu.ucalgary.oop;
 
-import java.util.*;
+import java.util.Objects;
 
 public class Supply {
     private String type;
@@ -15,15 +15,15 @@ public class Supply {
         return quantity;
     }
 
-    public String getType() {
-        return type;
-    }
-
     public void setQuantity(int quantity) {
         if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative");
         }
         this.quantity = quantity;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public void setType(String type) {

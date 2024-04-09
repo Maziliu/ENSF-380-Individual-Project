@@ -1,6 +1,6 @@
 package edu.ucalgary.oop;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class Location {
     private String name, address;
@@ -18,28 +18,28 @@ public class Location {
         return name;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public ArrayList<Supply> getSupplies() {
-        return supplies;
-    }
-
-    public ArrayList<DisasterVictim> getOccupants() {
-        return occupants;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
     }
 
     public void setAddress(String address) {
         this.address = address;
     }
 
+    public ArrayList<Supply> getSupplies() {
+        return supplies;
+    }
+
     public void setSupplies(ArrayList<Supply> supplies) {
         this.supplies = supplies;
+    }
+
+    public ArrayList<DisasterVictim> getOccupants() {
+        return occupants;
     }
 
     public void setOccupants(ArrayList<DisasterVictim> occupants) {

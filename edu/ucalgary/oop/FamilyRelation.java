@@ -10,14 +10,30 @@ public class FamilyRelation {
         setRelation(relation);
     }
 
-    public DisasterVictim getPersonOne() { return personOne; }
-    public DisasterVictim getPersonTwo() { return personTwo; }
-    public String getRelation() { return relation; }
+    public DisasterVictim getPersonOne() {
+        return personOne;
+    }
 
-    public void setPersonOne(DisasterVictim personOne) { this.personOne = personOne; }
-    public void setPersonTwo(DisasterVictim personTwo) { this.personTwo = personTwo; }
-    public void setRelation(String relation) { this.relation = relation; }
-    
+    public void setPersonOne(DisasterVictim personOne) {
+        this.personOne = personOne;
+    }
+
+    public DisasterVictim getPersonTwo() {
+        return personTwo;
+    }
+
+    public void setPersonTwo(DisasterVictim personTwo) {
+        this.personTwo = personTwo;
+    }
+
+    public String getRelation() {
+        return relation;
+    }
+
+    public void setRelation(String relation) {
+        this.relation = relation;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof FamilyRelation) {

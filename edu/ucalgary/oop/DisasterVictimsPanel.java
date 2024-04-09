@@ -7,19 +7,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class DisasterVictimsPanel extends JPanel {
+    private final AppGui appGui;
+    private final JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
     private JTextField searchBar;
     private DefaultTableModel model;
     private JTable resultsTable;
     private JComboBox<String> locationsComboBox;
-    private AppGui appGui;
-    private JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
 
     public DisasterVictimsPanel(AppGui appGui) {
         super(new BorderLayout());
@@ -116,78 +112,97 @@ public class DisasterVictimsPanel extends JPanel {
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(resultsScrollPane, BorderLayout.CENTER);
 
-        JButton addVictimButton = new JButton("Add Victim");
-        addVictimButton.addActionListener(e -> {
-            ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
-            fields.add(new Pair<Object, Object>("First Name:", new JTextField(20)));
-            fields.add(new Pair<Object, Object>("Last Name:", new JTextField(20)));
-            fields.add(new Pair<Object, Object>("Date of Birth:", new JTextField(20)));
-
-            if (locationsComboBox == null) {
-                JComboBox<String> locations = new JComboBox<>();
-                DriverApplication.locations.forEach(location -> locations.addItem(location.getName()));
-                fields.add(new Pair<Object, Object>("Location:", locations));
-            } else {
-                fields.add(new Pair<Object, Object>("Location:",
-                        new JLabel(locationsComboBox.getSelectedItem().toString())));
-            }
-
-            ArrayList<String> availableGenders = new ArrayList<String>();
-            try {
-                File genderFile = new File("edu/ucalgary/oop/GenderOptions.txt");
-                Scanner sr = new Scanner(genderFile);
-                while (sr.hasNextLine()) {
-                    availableGenders.add(sr.nextLine());
-                }
-                availableGenders.add("");
-                sr.close();
-            } catch (Exception ex) {
-                throw new IllegalArgumentException("File not found");
-            }
-
-            JComboBox<String> genderComboBox = new JComboBox<>(availableGenders.toArray(new String[0]));
-            fields.add(new Pair<Object, Object>("Gender", genderComboBox));
-
-            Map<String, Object> components = generatePopupFrameComponents("Add Victim", fields);
-            JFrame popupFrame = (JFrame) components.get("frame");
-            JButton saveButton = (JButton) components.get("saveButton");
-            JButton cancelButton = (JButton) components.get("cancelButton");
-
-            popupFrame.pack();
-            popupFrame.setVisible(true);
-
-            saveButton.addActionListener(e2 -> {
-                String firstName = ((JTextField) fields.get(0).second).getText();
-                String lastName = ((JTextField) fields.get(1).second).getText();
-                String dateOfBirth = ((JTextField) fields.get(2).second).getText();
-                String location = (locationsComboBox == null)
-                        ? ((JComboBox<String>) fields.get(3).second).getSelectedItem().toString()
-                        : locationsComboBox.getSelectedItem().toString();
-                String gender = (String) genderComboBox.getSelectedItem();
-
-                Location loc = null;
-                for (Location l : DriverApplication.locations) {
-                    if (l.getName().equals(location)) {
-                        loc = l;
-                        break;
+        if (appGui instanceof LocalGui) {
+            JButton addVictimButton = new JButton("Add Victim");
+            addVictimButton.addActionListener(e -> {
+                ArrayList<String> availableGenders = new ArrayList<String>();
+                try {
+                    File genderFile = new File(new File(new File("edu", "ucalgary"), "oop"), "GenderOptions.txt");
+                    Scanner sr = new Scanner(genderFile);
+                    while (sr.hasNextLine()) {
+                        availableGenders.add(sr.nextLine());
                     }
+                    availableGenders.add("");
+                    sr.close();
+                } catch (Exception ex) {
+                    throw new IllegalArgumentException("File not found");
                 }
 
-                if (loc != null) {
-                    DisasterVictim victim = new DisasterVictim(firstName, lastName, LocalDate.now(),
-                            LocalDate.parse(dateOfBirth), gender);
-                    loc.addOccupant(victim);
-                    DriverApplication.disasterVictims.add(victim);
-                    updateDisasterVictimTable(searchBar, model);
+                JComboBox<String> genderComboBox = new JComboBox<>(availableGenders.toArray(new String[0]));
+                ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
+                fields.add(new Pair<Object, Object>("First Name:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Last Name:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Date of Birth:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Gender", genderComboBox));
+                fields.add(new Pair<Object, Object>("Comments:", new JTextField(20)));
+                ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
+                DietaryRestrictions[] restrictions = DietaryRestrictions.values();
+                for (DietaryRestrictions restriction : restrictions) {
+                    JCheckBox checkBox = new JCheckBox(restriction.toString());
+                    fields.add(new Pair<Object, Object>("", checkBox));
+                    checkBoxes.add(checkBox);
                 }
 
-                popupFrame.dispose();
+                if (locationsComboBox == null) {
+                    JComboBox<String> locations = new JComboBox<>();
+                    DriverApplication.locations.forEach(location -> locations.addItem(location.getName()));
+                    fields.add(new Pair<Object, Object>("Location:", locations));
+                } else {
+                    fields.add(new Pair<Object, Object>("Location:",
+                            new JLabel(locationsComboBox.getSelectedItem().toString())));
+                }
+
+                Map<String, Object> components = generatePopupFrameComponents("Add Victim", fields);
+                JFrame popupFrame = (JFrame) components.get("frame");
+                JButton saveButton = (JButton) components.get("saveButton");
+                JButton cancelButton = (JButton) components.get("cancelButton");
+
+                popupFrame.pack();
+                popupFrame.setVisible(true);
+
+                saveButton.addActionListener(e2 -> {
+                    String firstName = ((JTextField) fields.get(0).second).getText();
+                    String lastName = ((JTextField) fields.get(1).second).getText();
+                    String dateOfBirth = ((JTextField) fields.get(2).second).getText();
+                    String comments = ((JTextField) fields.get(4).second).getText();
+                    EnumSet<DietaryRestrictions> dietaryRestrictions = EnumSet.noneOf(DietaryRestrictions.class);
+
+                    for (int i = 0; i < checkBoxes.size(); i++) {
+                        if (checkBoxes.get(i).isSelected()) {
+                            dietaryRestrictions.add(DietaryRestrictions.values()[i]);
+                        }
+                    }
+
+                    String location = locationsComboBox.getSelectedItem().toString();
+                    String gender = (String) genderComboBox.getSelectedItem();
+
+                    Location loc = null;
+                    for (Location l : DriverApplication.locations) {
+                        if (l.getName().equals(location)) {
+                            loc = l;
+                            break;
+                        }
+                    }
+
+                    if (loc != null) {
+                        DisasterVictim victim = new DisasterVictim(firstName, lastName, LocalDate.now(),
+                                LocalDate.parse(dateOfBirth), gender);
+
+                        victim.setDietaryRestrictions(dietaryRestrictions);
+                        victim.setComments(comments);
+                        loc.addOccupant(victim);
+                        DriverApplication.disasterVictims.add(victim);
+                        updateDisasterVictimTable(searchBar, model);
+                    }
+
+                    popupFrame.dispose();
+                });
+
+                cancelButton.addActionListener(e2 -> popupFrame.dispose());
             });
 
-            cancelButton.addActionListener(e2 -> popupFrame.dispose());
-        });
-
-        centerPanel.add(addVictimButton, BorderLayout.SOUTH);
+            centerPanel.add(addVictimButton, BorderLayout.SOUTH);
+        }
 
         return centerPanel;
     }
@@ -360,6 +375,9 @@ public class DisasterVictimsPanel extends JPanel {
         fields.add(new Pair<Object, Object>("First Name:", new JTextField(firstName, 20)));
         fields.add(new Pair<Object, Object>("Last Name:", new JTextField(lastName, 20)));
         fields.add(new Pair<Object, Object>("Gender:", new JLabel(victim.getGender())));
+        fields.add(new Pair<Object, Object>("Dietary Restrictions:",
+                new JLabel((new ArrayList<>(victim.getDietaryRestrictions())).toString())));
+        fields.add(new Pair<Object, Object>("Comments:", new JLabel(victim.getComments())));
         fields.add(new Pair<Object, Object>("Entry Date:", new JLabel(victim.getEntryDate().toString())));
         fields.add(new Pair<Object, Object>("Birth Date:", new JLabel(victim.getDateOfBirth().toString())));
         JComboBox<String> locationsComboBox = new JComboBox<String>();

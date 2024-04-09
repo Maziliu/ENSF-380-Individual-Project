@@ -1,14 +1,7 @@
 package edu.ucalgary.oop;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-
 import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LocalGui extends AppGui {
     private JPanel localPanel;
@@ -21,7 +14,6 @@ public class LocalGui extends AppGui {
     private void createLocalPanel() {
         localPanel = new JPanel(new CardLayout());
         localPanel.add(new DisasterVictimsPanel(this), "DisasterVictims");
-        localPanel.add(getManageLocalResourcesPanel(), "Manage Local Resources");
         localPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
@@ -34,7 +26,7 @@ public class LocalGui extends AppGui {
         fileMenu.add(exitItem);
 
         JMenu optionsMenu = new JMenu("Options");
-        String[] options = { "Manage Local Resources", "DisasterVictims" };
+        String[] options = { "DisasterVictims" };
 
         for (String option : options) {
             JMenuItem menuItem = new JMenuItem(option);
@@ -61,11 +53,5 @@ public class LocalGui extends AppGui {
     @Override
     public JPanel getMainPanel() {
         return localPanel;
-    }
-
-    private JPanel getManageLocalResourcesPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        return panel;
     }
 }

@@ -2,23 +2,22 @@ package edu.ucalgary.oop;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.*;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Scanner;
 
 public class DisasterVictim extends Person {
+    private static int counter = 0;
+    private final int ASSINGNED_SOCIAL_ID;
+    private final LocalDate ENTRY_DATE;
+    private final HashSet<FamilyRelation> familyConnections;
     private String comments;
     private LocalDate dateOfBirth;
     private String gender = "Unknown";
     private ArrayList<MedicalRecord> medicalRecords;
     private ArrayList<Supply> personalBelongings;
-    private HashSet<FamilyRelation> familyConnections;
     private EnumSet<DietaryRestrictions> dietaryRestrictions;
-    private static int counter = 0;
-    private final int ASSINGNED_SOCIAL_ID;
-    private final LocalDate ENTRY_DATE;
 
     public DisasterVictim(String firstName, LocalDate ENTRY_DATE) {
         super(firstName);
@@ -47,16 +46,40 @@ public class DisasterVictim extends Person {
         setGender(gender);
     }
 
-    public EnumSet<DietaryRestrictions> getDietaryRestrictions() {
-        return dietaryRestrictions;
-    }
-
     public static int getCounter() {
         return counter;
     }
 
+    public EnumSet<DietaryRestrictions> getDietaryRestrictions() {
+        return dietaryRestrictions;
+    }
+
+    public void setDietaryRestrictions(EnumSet<DietaryRestrictions> dietaryRestrictions) {
+        this.dietaryRestrictions = dietaryRestrictions;
+    }
+
     public LocalDate getDateOfBirth() {
         return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        if (dateOfBirth.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Date of birth cannot be in the future.");
+        } else {
+            this.dateOfBirth = dateOfBirth;
+        }
+    }
+
+    public void setDateOfBirth(int age) {
+        setCalculateApproximateDateOfBirth(age);
+    }
+
+    public void setDateOfBirth(String dateOfBirth) {
+        try {
+            setDateOfBirth(LocalDate.parse(dateOfBirth));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format. Please use yyyy-mm-dd.");
+        }
     }
 
     public int getAssignedSocialID() {
@@ -71,28 +94,49 @@ public class DisasterVictim extends Person {
         return comments;
     }
 
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
     public String getGender() {
         return gender;
     }
 
+    public void setGender(String gender) {
+        if (gender.isEmpty()) {
+            return;
+        }
+
+        ArrayList<String> availableGenders = new ArrayList<String>();
+        try {
+            File genderFile = new File(new File(new File("edu", "ucalgary"), "oop"), "GenderOptions.txt");
+            Scanner sr = new Scanner(genderFile);
+            while (sr.hasNextLine()) {
+                availableGenders.add(sr.nextLine());
+            }
+            sr.close();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("File not found");
+        }
+
+        boolean genderFound = false;
+        for (String option : availableGenders) {
+            if (option.equalsIgnoreCase(gender)) {
+                this.gender = gender;
+                genderFound = true;
+                break;
+            }
+        }
+
+        if (!genderFound && !gender.equals("Unknown")) {
+            throw new IllegalArgumentException(
+                    gender + " not found in the list of available genders. Please use one of the following: "
+                            + availableGenders);
+        }
+    }
+
     public ArrayList<MedicalRecord> getMedicalRecords() {
         return medicalRecords;
-    }
-
-    public ArrayList<Supply> getPersonalBelongings() {
-        return personalBelongings;
-    }
-
-    public HashSet<FamilyRelation> getFamilyConnections() {
-        return familyConnections;
-    }
-
-    public void setDietaryRestrictions(EnumSet<DietaryRestrictions> dietaryRestrictions) {
-        this.dietaryRestrictions = dietaryRestrictions;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
     }
 
     public void setMedicalRecords(ArrayList<MedicalRecord> medicalRecords) {
@@ -101,8 +145,16 @@ public class DisasterVictim extends Person {
         this.medicalRecords = medicalRecords;
     }
 
+    public ArrayList<Supply> getPersonalBelongings() {
+        return personalBelongings;
+    }
+
     public void setPersonalBelongings(ArrayList<Supply> personalBelongings) {
         this.personalBelongings = personalBelongings;
+    }
+
+    public HashSet<FamilyRelation> getFamilyConnections() {
+        return familyConnections;
     }
 
     public void setFamilyConnections(ArrayList<DisasterVictim> familyConnections, ArrayList<String> relationTypes) {
@@ -219,39 +271,6 @@ public class DisasterVictim extends Person {
         }
     }
 
-    public void setGender(String gender) {
-        if (gender.isEmpty()) {
-            return;
-        }
-
-        ArrayList<String> availableGenders = new ArrayList<String>();
-        try {
-            File genderFile = new File("edu/ucalgary/oop/GenderOptions.txt");
-            Scanner sr = new Scanner(genderFile);
-            while (sr.hasNextLine()) {
-                availableGenders.add(sr.nextLine());
-            }
-            sr.close();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("File not found");
-        }
-
-        boolean genderFound = false;
-        for (String option : availableGenders) {
-            if (option.toLowerCase().equals(gender.toLowerCase())) {
-                this.gender = gender;
-                genderFound = true;
-                break;
-            }
-        }
-
-        if (!genderFound && !gender.equals("Unknown")) {
-            throw new IllegalArgumentException(
-                    gender + " not found in the list of available genders. Please use one of the following: "
-                            + availableGenders);
-        }
-    }
-
     public void setCalculateApproximateDateOfBirth(int age) {
         if (age < 0) {
             throw new IllegalArgumentException("Age cannot be negative.");
@@ -268,25 +287,5 @@ public class DisasterVictim extends Person {
             return ASSINGNED_SOCIAL_ID == other.getAssignedSocialID();
         }
         return false;
-    }
-
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        if (dateOfBirth.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Date of birth cannot be in the future.");
-        } else {
-            this.dateOfBirth = dateOfBirth;
-        }
-    }
-
-    public void setDateOfBirth(int age) {
-        setCalculateApproximateDateOfBirth(age);
-    }
-
-    public void setDateOfBirth(String dateOfBirth) {
-        try {
-            setDateOfBirth(LocalDate.parse(dateOfBirth));
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid date format. Please use yyyy-mm-dd.");
-        }
     }
 }

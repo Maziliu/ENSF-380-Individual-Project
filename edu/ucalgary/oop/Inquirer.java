@@ -3,14 +3,12 @@ package edu.ucalgary.oop;
 import java.sql.*;
 import java.util.ArrayList;
 
-import javax.swing.plaf.nimbus.State;
-
 public class Inquirer extends Person implements ILoggable {
-    private int inquirerID;
-    private String servicesPhone, info;
-    private ArrayList<InquirerLog> previousInteractions;
-    private ArrayList<InquirerLog> newInteractions;
     private static int nextID = 0;
+    private final int inquirerID;
+    private final ArrayList<InquirerLog> previousInteractions;
+    private final ArrayList<InquirerLog> newInteractions;
+    private String servicesPhone, info;
 
     public Inquirer(String firstName, String lastName, String SERVICES_PHONE, String INFO, int id) {
         super(firstName);
@@ -38,14 +36,6 @@ public class Inquirer extends Person implements ILoggable {
         return servicesPhone;
     }
 
-    public String getInfo() {
-        return info;
-    }
-
-    public ArrayList<InquirerLog> getPreviousInteractions() {
-        return previousInteractions;
-    }
-
     public void setServicesPhone(String phoneNumber) {
         if (phoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
             this.servicesPhone = phoneNumber;
@@ -54,8 +44,16 @@ public class Inquirer extends Person implements ILoggable {
         }
     }
 
+    public String getInfo() {
+        return info;
+    }
+
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public ArrayList<InquirerLog> getPreviousInteractions() {
+        return previousInteractions;
     }
 
     public void addInteraction(InquirerLog interaction) {
@@ -109,7 +107,7 @@ public class Inquirer extends Person implements ILoggable {
             int maxId = 0;
             String maxIdQuery = "SELECT MAX(id) AS maxId FROM INQUIRY_LOG";
             try (Statement maxIdStmt = connection.createStatement();
-                    ResultSet rs = maxIdStmt.executeQuery(maxIdQuery)) {
+                 ResultSet rs = maxIdStmt.executeQuery(maxIdQuery)) {
                 if (rs.next()) {
                     maxId = rs.getInt("maxId") + 1;
                 }
