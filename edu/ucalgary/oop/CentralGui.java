@@ -24,7 +24,6 @@ public class CentralGui extends AppGui {
         centralPanel = new JPanel(new CardLayout());
         centralPanel.add(new DisasterVictimsPanel(this), "Disaster Victims");
         centralPanel.add(getInquirersPanel(), "Inquirers");
-        centralPanel.add(new JPanel(), "Generate Data");
         centralPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
@@ -38,7 +37,7 @@ public class CentralGui extends AppGui {
         fileMenu.add(exitItem);
 
         JMenu optionsMenu = new JMenu("Options");
-        String[] options = { "Disaster Victims", "Inquirers", "Generate Data" };
+        String[] options = { "Disaster Victims", "Inquirers" };
 
         for (String option : options) {
             JMenuItem menuItem = new JMenuItem(option);

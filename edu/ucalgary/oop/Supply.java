@@ -1,4 +1,5 @@
 package edu.ucalgary.oop;
+
 import java.util.*;
 
 public class Supply {
@@ -10,34 +11,37 @@ public class Supply {
         setQuantity(quantity);
     }
 
-    public int getQuantity() { return quantity; }
-    public String getType() { return type; }
-
-    public void setQuantity(int quantity) 
-    {
-        if (quantity < 0) 
-        {
-            throw new IllegalArgumentException("Quantity cannot be negative");
-        } 
-        this.quantity = quantity; 
+    public int getQuantity() {
+        return quantity;
     }
-    public void setType(String type) { this.type = type; }
-    public void decrementQuantity(int quantity) 
-    {
-        if (quantity ==  0 || this.quantity - quantity < 0) 
-        {
+
+    public String getType() {
+        return type;
+    }
+
+    public void setQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+        this.quantity = quantity;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void decrementQuantity(int quantity) {
+        if (quantity == 0 || this.quantity - quantity < 0) {
             throw new IllegalStateException("Quantity cannot be negative");
         }
-        this.quantity -= quantity; 
+        this.quantity -= quantity;
     }
 
-    public void incrementQuantity(int quantity) 
-    {
-        if (quantity < 0) 
-        {
+    public void incrementQuantity(int quantity) {
+        if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative");
         }
-        this.quantity += quantity; 
+        this.quantity += quantity;
     }
 
     @Override
@@ -52,5 +56,10 @@ public class Supply {
     @Override
     public int hashCode() {
         return Objects.hash(type);
+    }
+
+    @Override
+    public String toString() {
+        return type + " (" + quantity + ")";
     }
 }

@@ -28,14 +28,22 @@ public class DisasterVictim extends Person {
         personalBelongings = new ArrayList<Supply>();
         familyConnections = new HashSet<FamilyRelation>();
         dietaryRestrictions = EnumSet.noneOf(DietaryRestrictions.class);
+        setDateOfBirth(LocalDate.of(0, 1, 1));
+        setGender(gender);
+    }
+
+    public DisasterVictim(String firstName, String lastName, LocalDate entryDate, LocalDate dateOfBirth,
+            String gender) {
+        this(firstName, entryDate);
+        setLastName(lastName);
         setDateOfBirth(dateOfBirth);
         setGender(gender);
     }
 
-    public DisasterVictim(String firstName, String lastName, LocalDate now, LocalDate dateOfBirth, String gender) {
-        this(firstName, now);
+    public DisasterVictim(String firstName, String lastName, LocalDate entryDate, int approxAge, String gender) {
+        this(firstName, entryDate);
         setLastName(lastName);
-        setDateOfBirth(dateOfBirth);
+        setDateOfBirth(approxAge);
         setGender(gender);
     }
 
@@ -45,6 +53,10 @@ public class DisasterVictim extends Person {
 
     public static int getCounter() {
         return counter;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
     public int getAssignedSocialID() {
@@ -57,6 +69,10 @@ public class DisasterVictim extends Person {
 
     public String getComments() {
         return comments;
+    }
+
+    public String getGender() {
+        return gender;
     }
 
     public ArrayList<MedicalRecord> getMedicalRecords() {
@@ -80,6 +96,8 @@ public class DisasterVictim extends Person {
     }
 
     public void setMedicalRecords(ArrayList<MedicalRecord> medicalRecords) {
+        medicalRecords.sort(
+                (MedicalRecord m1, MedicalRecord m2) -> m1.getDateOfTreatment().compareTo(m2.getDateOfTreatment()));
         this.medicalRecords = medicalRecords;
     }
 
@@ -253,7 +271,15 @@ public class DisasterVictim extends Person {
     }
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
+        if (dateOfBirth.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Date of birth cannot be in the future.");
+        } else {
+            this.dateOfBirth = dateOfBirth;
+        }
+    }
+
+    public void setDateOfBirth(int age) {
+        setCalculateApproximateDateOfBirth(age);
     }
 
     public void setDateOfBirth(String dateOfBirth) {
@@ -262,27 +288,5 @@ public class DisasterVictim extends Person {
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid date format. Please use yyyy-mm-dd.");
         }
-    }
-
-    public static void main(String[] args) {
-        DisasterVictim personOne = new DisasterVictim("John", LocalDate.now());
-        DisasterVictim personTwo = new DisasterVictim("Jane", LocalDate.now());
-        DisasterVictim personThree = new DisasterVictim("Jack", LocalDate.now());
-        DisasterVictim personFour = new DisasterVictim("Jill", LocalDate.now());
-        personOne.addFamilyConnection(personTwo, "Spouse");
-        personOne.addFamilyConnection(personThree, "Sibling");
-        personOne.addFamilyConnection(personFour, "Sibling");
-        personTwo.addFamilyConnection(personThree, "Sibling");
-        personTwo.addFamilyConnection(personFour, "Sibling");
-        personThree.addFamilyConnection(personFour, "Spouse");
-        System.out.println(personOne.getFamilyConnections());
-        System.out.println(personTwo.getFamilyConnections());
-        System.out.println(personThree.getFamilyConnections());
-        System.out.println(personFour.getFamilyConnections());
-        personOne.removeFamilyConnection(personTwo, "Spouse");
-        System.out.println(personOne.getFamilyConnections());
-        System.out.println(personTwo.getFamilyConnections());
-        System.out.println(personThree.getFamilyConnections());
-        System.out.println(personFour.getFamilyConnections());
     }
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class MedicalRecord {
     private Location location;
     private String treatmentDetails;
-    private String dateOfTreatment;
+    private LocalDate dateOfTreatment;
 
     public MedicalRecord(Location location, String treatmentDetails, String dateOfTreatment) {
         this.location = location;
@@ -30,7 +30,7 @@ public class MedicalRecord {
         this.treatmentDetails = treatmentDetails;
     }
 
-    public String getDateOfTreatment() {
+    public LocalDate getDateOfTreatment() {
         return dateOfTreatment;
     }
 
@@ -40,6 +40,10 @@ public class MedicalRecord {
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid date format. Please use yyyy-mm-dd.");
         }
+        this.dateOfTreatment = LocalDate.parse(dateOfTreatment);
+    }
+
+    public void setDateOfTreatment(LocalDate dateOfTreatment) {
         this.dateOfTreatment = dateOfTreatment;
     }
 

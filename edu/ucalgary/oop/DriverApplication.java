@@ -12,6 +12,7 @@ public class DriverApplication extends AppGui {
     public static ArrayList<DisasterVictim> disasterVictims = new ArrayList<>();
     public static ArrayList<Inquirer> inquirers = new ArrayList<>();
     public static ArrayList<Location> locations = new ArrayList<>();
+    public static ArrayList<Supply> supplies = new ArrayList<>();
 
     public DriverApplication() {
         createConnection();
