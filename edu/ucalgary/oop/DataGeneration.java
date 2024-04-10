@@ -104,7 +104,7 @@ public class DataGeneration {
      * 
      * @return the list of generated supplies
      */
-    private static ArrayList<Supply> generateSupplies() {
+    public static ArrayList<Supply> generateSupplies() {
         ArrayList<Supply> generatedSupplies = new ArrayList<>();
         Random random = new Random();
         for (int i = 0; i < 100; i++) {
@@ -122,7 +122,7 @@ public class DataGeneration {
      * 
      * @return the list of generated victims
      */
-    private static ArrayList<DisasterVictim> generateVictims() {
+    public static ArrayList<DisasterVictim> generateVictims() {
         ArrayList<DisasterVictim> victims = new ArrayList<>();
         ArrayList<String> availableGenders = new ArrayList<String>();
         try {

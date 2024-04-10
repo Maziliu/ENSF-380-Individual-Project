@@ -4,7 +4,7 @@ package edu.ucalgary.oop;
  * The abstract class Person represents a person with a first name and a last
  * name.
  */
-public abstract class Person {
+public class Person {
     private String firstName, lastName;
 
     /**

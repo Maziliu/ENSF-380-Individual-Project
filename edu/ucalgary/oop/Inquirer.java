@@ -10,8 +10,8 @@ import java.util.ArrayList;
 public class Inquirer extends Person implements ILoggable {
     private static int nextID = 0;
     private final int inquirerID;
-    private final ArrayList<InquirerLog> previousInteractions;
-    private final ArrayList<InquirerLog> newInteractions;
+    private ArrayList<InquirerLog> previousInteractions;
+    private ArrayList<InquirerLog> newInteractions;
     private String servicesPhone, info;
 
     /**
@@ -48,6 +48,24 @@ public class Inquirer extends Person implements ILoggable {
      */
     public Inquirer(String firstName, String lastName, String SERVICES_PHONE, String INFO) {
         this(firstName, lastName, SERVICES_PHONE, INFO, nextID);
+    }
+
+    /**
+     * returns the new interactions
+     * 
+     * @return the new interactions
+     */
+    public ArrayList<InquirerLog> getNewInteractions() {
+        return newInteractions;
+    }
+
+    /**
+     * sets the new interactions
+     * 
+     * @param newInteractions the new interactions to set
+     */
+    public void setNewInteractions(ArrayList<InquirerLog> newInteractions) {
+        this.newInteractions = newInteractions;
     }
 
     /**

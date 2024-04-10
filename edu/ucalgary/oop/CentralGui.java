@@ -33,7 +33,7 @@ public class CentralGui extends AppGui {
      * Creates the main panel for the central GUI. This method sets up the layout
      * and components of the main panel.
      */
-    private void createMainPanel() {
+    public void createMainPanel() {
         centralPanel = new JPanel(new CardLayout());
         centralPanel.add(new DisasterVictimsPanel(this), "Disaster Victims");
         centralPanel.add(getInquirersPanel(), "Inquirers");
@@ -82,7 +82,7 @@ public class CentralGui extends AppGui {
      * 
      * @param panelName The name of the panel to switch to.
      */
-    private void switchPanel(String panelName) {
+    public void switchPanel(String panelName) {
         CardLayout cl = (CardLayout) (centralPanel.getLayout());
         cl.show(centralPanel, panelName);
     }
@@ -108,7 +108,7 @@ public class CentralGui extends AppGui {
      *               vertically in the popup frame.
      * @return
      */
-    private Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
+    public Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
         JFrame popupFrame = new JFrame(title);
         popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -120,8 +120,8 @@ public class CentralGui extends AppGui {
 
         for (Pair<Object, Object> field : fields) {
             JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            rowPanel.add(new JLabel(field.first.toString()));
-            rowPanel.add((Component) field.second);
+            rowPanel.add(new JLabel(field.first().toString()));
+            rowPanel.add((Component) field.second());
             detailsPanel.add(rowPanel);
         }
 
@@ -155,7 +155,7 @@ public class CentralGui extends AppGui {
      * @param searchBar The search bar to search for inquirers.
      * @param model     The table model to update with the search results.
      */
-    private void updateInquirerTable(JTextField searchBar, DefaultTableModel model) {
+    public void updateInquirerTable(JTextField searchBar, DefaultTableModel model) {
         String searchText = searchBar.getText();
         ArrayList<Inquirer> results = searchInquirer(searchText);
         model.setRowCount(0);
@@ -178,15 +178,15 @@ public class CentralGui extends AppGui {
      * @param searchBar   The search bar to search for inquirers.
      * @param model       The table model to update with the search results.
      */
-    private void displayInquirerInfoPopup(String id, String phoneNumber, String firstName, String lastName,
+    public void displayInquirerInfoPopup(String id, String phoneNumber, String firstName, String lastName,
             JTextField searchBar,
             DefaultTableModel model) {
 
         ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
         fields.add(new Pair<Object, Object>("ID:", new JLabel(id)));
         fields.add(new Pair<Object, Object>("Phone Number:", new JLabel(phoneNumber)));
-        fields.add(new Pair<Object, Object>("First Name:", new JTextField(firstName, 20)));
-        fields.add(new Pair<Object, Object>("Last Name:", new JTextField(lastName, 20)));
+        fields.add(new Pair<Object, Object>("First Name:", new JLabel(firstName)));
+        fields.add(new Pair<Object, Object>("Last Name:", new JLabel(lastName)));
 
         Map<String, Object> components = generatePopupFrameComponents("Inquirer Information", fields);
         JFrame popupFrame = (JFrame) components.get("frame");
@@ -247,13 +247,6 @@ public class CentralGui extends AppGui {
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String updatedFirstName = ((JTextField) fields.get(2).second).getText();
-                String updatedLastName = ((JTextField) fields.get(3).second).getText();
-
-                if (inquirer != null) {
-                    inquirer.setFirstName(updatedFirstName);
-                    inquirer.setLastName(updatedLastName);
-                }
 
                 updateInquirerTable(searchBar, model);
 
@@ -292,7 +285,7 @@ public class CentralGui extends AppGui {
      * 
      * @return The panel for the inquirers window.
      */
-    private JPanel getInquirersPanel() {
+    public JPanel getInquirersPanel() {
         JPanel container = new JPanel(new BorderLayout());
         JPanel searchBarPanel = new JPanel(new BorderLayout());
         JLabel searchLabel = new JLabel("Search for inquirers: ");
@@ -355,9 +348,9 @@ public class CentralGui extends AppGui {
                 saveButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        String firstName = ((JTextField) fields.get(0).second).getText();
-                        String lastName = ((JTextField) fields.get(1).second).getText();
-                        String phoneNumber = ((JTextField) fields.get(2).second).getText();
+                        String firstName = ((JTextField) fields.get(0).second()).getText();
+                        String lastName = ((JTextField) fields.get(1).second()).getText();
+                        String phoneNumber = ((JTextField) fields.get(2).second()).getText();
 
                         Inquirer inquirer = new Inquirer(firstName, lastName, phoneNumber, "info");
                         DriverApplication.inquirers.add(inquirer);
@@ -388,7 +381,7 @@ public class CentralGui extends AppGui {
      * @param id The ID of the inquirer to find.
      * @return The inquirer with the given ID, or null if no inquirer is found.
      */
-    private Inquirer findInquirerByID(String id) {
+    public Inquirer findInquirerByID(String id) {
         for (Inquirer inquirer : DriverApplication.inquirers) {
             if (inquirer.getInquirerID() == Integer.parseInt(id)) {
                 return inquirer;
@@ -404,7 +397,7 @@ public class CentralGui extends AppGui {
      * @param searchText The text to search for in inquirers.
      * @return A list of inquirers that match the search text.
      */
-    private ArrayList<Inquirer> searchInquirer(String searchText) {
+    public ArrayList<Inquirer> searchInquirer(String searchText) {
         Map<Inquirer, Integer> scores = new HashMap<>();
         String[] searchWords = searchText.toLowerCase().split("\\s+");
 
@@ -437,7 +430,7 @@ public class CentralGui extends AppGui {
      * @return True if the inquirer matches all the search criteria, false
      *         otherwise.
      */
-    private boolean matchesAllCriteria(Inquirer inquirer, String[] searchWords) {
+    public boolean matchesAllCriteria(Inquirer inquirer, String[] searchWords) {
         for (String word : searchWords) {
             if (!(inquirer.getFirstName().toLowerCase().contains(word) ||
                     inquirer.getLastName().toLowerCase().contains(word) ||
@@ -459,7 +452,7 @@ public class CentralGui extends AppGui {
      *                    are split by whitespace.
      * @return The score of the inquirer based on the search words.
      */
-    private int calculateScore(Inquirer inquirer, String[] searchWords) {
+    public int calculateScore(Inquirer inquirer, String[] searchWords) {
         int score = 0;
         for (String word : searchWords) {
             if (inquirer.getFirstName().toLowerCase().contains(word))

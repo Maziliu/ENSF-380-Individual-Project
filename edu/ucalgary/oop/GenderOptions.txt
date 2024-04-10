@@ -5,3 +5,5 @@ man
 non-binary
 two-spirit
 woman
+new
+new2

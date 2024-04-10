@@ -50,7 +50,7 @@ public class DisasterVictimsPanel extends JPanel {
      * 
      * @param appGui the LocalGui object that the panel is being created for
      */
-    private void createPanel(LocalGui appGui) {
+    public void createPanel(LocalGui appGui) {
         // Search bar setup
         JPanel searchBarPanel = new JPanel(new BorderLayout());
         JPanel leftPanel = new JPanel(), leftPanelOuter = new JPanel();
@@ -111,7 +111,7 @@ public class DisasterVictimsPanel extends JPanel {
      * 
      * @param appGui the CentralGui object that the panel is being created for
      */
-    private void createPanel(CentralGui appGui) {
+    public void createPanel(CentralGui appGui) {
         // Search bar setup
         JPanel searchBarPanel = new JPanel(new BorderLayout());
         JLabel searchLabel = new JLabel("Search for victims in all locations: ");
@@ -133,7 +133,7 @@ public class DisasterVictimsPanel extends JPanel {
      * 
      * @return the panel that displays information about disaster victims
      */
-    private JPanel getCenterDisasterVictimPanel() {
+    public JPanel getCenterDisasterVictimPanel() {
         String[] columnNames = { "Id", "FirstName", "LastName", "Location" };
         model = new DefaultTableModel(null, columnNames) {
             @Override
@@ -166,7 +166,7 @@ public class DisasterVictimsPanel extends JPanel {
                 ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
                 fields.add(new Pair<Object, Object>("First Name:", new JTextField(20)));
                 fields.add(new Pair<Object, Object>("Last Name:", new JTextField(20)));
-                fields.add(new Pair<Object, Object>("Date of Birth:", new JTextField(20)));
+                fields.add(new Pair<Object, Object>("Date of Birth or Age:", new JTextField(20)));
                 fields.add(new Pair<Object, Object>("Gender", genderComboBox));
                 fields.add(new Pair<Object, Object>("Comments:", new JTextField(20)));
                 ArrayList<JCheckBox> checkBoxes = new ArrayList<>();
@@ -195,10 +195,10 @@ public class DisasterVictimsPanel extends JPanel {
                 popupFrame.setVisible(true);
 
                 saveButton.addActionListener(e2 -> {
-                    String firstName = ((JTextField) fields.get(0).second).getText();
-                    String lastName = ((JTextField) fields.get(1).second).getText();
-                    String dateOfBirth = ((JTextField) fields.get(2).second).getText();
-                    String comments = ((JTextField) fields.get(4).second).getText();
+                    String firstName = ((JTextField) fields.get(0).second()).getText();
+                    String lastName = ((JTextField) fields.get(1).second()).getText();
+                    String dateOfBirth = ((JTextField) fields.get(2).second()).getText();
+                    String comments = ((JTextField) fields.get(4).second()).getText();
                     EnumSet<DietaryRestrictions> dietaryRestrictions = EnumSet.noneOf(DietaryRestrictions.class);
 
                     for (int i = 0; i < checkBoxes.size(); i++) {
@@ -219,8 +219,18 @@ public class DisasterVictimsPanel extends JPanel {
                     }
 
                     if (loc != null) {
-                        DisasterVictim victim = new DisasterVictim(firstName, lastName, LocalDate.now(),
-                                LocalDate.parse(dateOfBirth), gender);
+                        DisasterVictim victim = null;
+                        try {
+                            victim = new DisasterVictim(firstName, lastName, LocalDate.now(),
+                                    LocalDate.parse(dateOfBirth), gender);
+                        } catch (Exception ex) {
+                            try {
+                                victim = new DisasterVictim(firstName, lastName, LocalDate.now(),
+                                        Integer.parseInt(dateOfBirth), gender);
+                            } catch (Exception ex2) {
+                                throw new IllegalArgumentException("Invalid date/age format");
+                            }
+                        }
 
                         victim.setDietaryRestrictions(dietaryRestrictions);
                         victim.setComments(comments);
@@ -247,7 +257,7 @@ public class DisasterVictimsPanel extends JPanel {
      * results. When a victim is clicked on, a popup is displayed with the victim's
      * information.
      */
-    private void setupListeners() {
+    public void setupListeners() {
         resultsTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = resultsTable.getSelectedRow();
@@ -276,13 +286,13 @@ public class DisasterVictimsPanel extends JPanel {
      * @param model     the table model that is being updated. This is a
      *                  DefaultTableModel object
      */
-    private void updateDisasterVictimTable(JTextField searchBar, DefaultTableModel model) {
+    public void updateDisasterVictimTable(JTextField searchBar, DefaultTableModel model) {
         String searchText = searchBar.getText();
         ArrayList<Pair<DisasterVictim, Location>> results = searchDisasterVictim(searchText);
         model.setRowCount(0);
         for (Pair<DisasterVictim, Location> result : results) {
-            model.addRow(new Object[] { result.first.getAssignedSocialID(), result.first.getFirstName(),
-                    result.first.getLastName(), result.second.getName() });
+            model.addRow(new Object[] { result.first().getAssignedSocialID(), result.first().getFirstName(),
+                    result.first().getLastName(), result.second().getName() });
         }
     }
 
@@ -297,7 +307,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @return an ArrayList of Pair objects that contain the disaster victim and
      *         their location
      */
-    private ArrayList<Pair<DisasterVictim, Location>> searchDisasterVictim(String searchText) {
+    public ArrayList<Pair<DisasterVictim, Location>> searchDisasterVictim(String searchText) {
         Map<Pair<DisasterVictim, Location>, Integer> scores = new HashMap<>();
         ArrayList<String> searchWords = new ArrayList<>(Arrays.asList(searchText.toLowerCase().split("\\s+")));
 
@@ -334,7 +344,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @return true if the victim matches any of the search criteria, false
      *         otherwise (if no matches are found)
      */
-    private boolean anyMatches(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
+    public boolean anyMatches(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
         for (String word : searchWords) {
             if (!(victim.getFirstName().toLowerCase().contains(word) ||
                     victim.getLastName().toLowerCase().contains(word) ||
@@ -355,7 +365,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @param searchWords The words in the search bar to search for
      * @return The score of the search criteria based on the victim's information
      */
-    private int calculateScore(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
+    public int calculateScore(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
         int score = 0;
         for (String word : searchWords) {
             if (victim.getFirstName().toLowerCase().contains(word))
@@ -379,7 +389,7 @@ public class DisasterVictimsPanel extends JPanel {
      *               vertically.
      * @return A map of the components of the popup frame
      */
-    private Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
+    public Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
         JFrame popupFrame = new JFrame(title);
         popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -391,8 +401,8 @@ public class DisasterVictimsPanel extends JPanel {
 
         for (Pair<Object, Object> field : fields) {
             JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            rowPanel.add(new JLabel(field.first.toString()));
-            rowPanel.add((Component) field.second);
+            rowPanel.add(new JLabel(field.first().toString()));
+            rowPanel.add((Component) field.second());
             detailsPanel.add(rowPanel);
         }
 
@@ -429,7 +439,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @param title       The title of the table
      * @return A JPanel with a table that displays the given data
      */
-    private JPanel createTablePanel(ArrayList<Object[]> dataList, String[] columnNames, Dimension dimension,
+    public JPanel createTablePanel(ArrayList<Object[]> dataList, String[] columnNames, Dimension dimension,
             String title) {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -464,7 +474,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @param container The container to get the table from
      * @return The JTable object from the container
      */
-    private static JTable getTableFromScrollPane(Container container) {
+    public static JTable getTableFromScrollPane(Container container) {
         Component comp = container.getLayout() instanceof BorderLayout
                 ? ((BorderLayout) container.getLayout()).getLayoutComponent(BorderLayout.CENTER)
                 : null;
@@ -493,7 +503,7 @@ public class DisasterVictimsPanel extends JPanel {
      * @param model     The table model that is being updated. This is a
      *                  DefaultTableModel object
      */
-    private void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
+    public void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
             JTextField searchBar, DefaultTableModel model) {
 
         DisasterVictim victim = null;
@@ -587,87 +597,90 @@ public class DisasterVictimsPanel extends JPanel {
 
         JPanel centeringPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        JButton addMedicalRecordButton = new JButton("Add Medical Record");
+        if (appGui instanceof LocalGui) {
+            JButton addMedicalRecordButton = new JButton("Add Medical Record");
 
-        addMedicalRecordButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
-                ArrayList<Location> locations = new ArrayList<>();
+            addMedicalRecordButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    ArrayList<Pair<Object, Object>> fields = new ArrayList<>();
+                    ArrayList<Location> locations = new ArrayList<>();
 
-                Location loc = null;
-                for (Location l : DriverApplication.locations) {
-                    for (DisasterVictim v : l.getOccupants()) {
-                        if (v.getAssignedSocialID() == Integer.parseInt(id)) {
-                            loc = l;
-                            break;
-                        }
-                    }
-                }
-
-                locations.add(loc);
-
-                JComboBox<String> locationsComboBox = new JComboBox<>();
-                for (Location l : locations) {
-                    locationsComboBox.addItem(l.getName());
-                }
-
-                fields.add(new Pair<Object, Object>("Location:", new JLabel(
-                        locationsComboBox.getSelectedItem().toString())));
-                fields.add(new Pair<Object, Object>("Treatment Details:", new JTextField(20)));
-                fields.add(new Pair<Object, Object>("Date of Treatment:", new JTextField(20)));
-
-                Map<String, Object> components = generatePopupFrameComponents("Add Medical Record", fields);
-                JFrame popupFrame = (JFrame) components.get("frame");
-                JButton saveButton = (JButton) components.get("saveButton");
-                JButton cancelButton = (JButton) components.get("cancelButton");
-
-                popupFrame.pack();
-                popupFrame.setVisible(true);
-
-                saveButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        String location = locationsComboBox.getSelectedItem().toString();
-                        String treatmentDetails = ((JTextField) fields.get(1).second).getText();
-                        String dateOfTreatment = ((JTextField) fields.get(2).second).getText();
-
-                        Location loc = null;
-                        for (Location l : DriverApplication.locations) {
-                            if (l.getName().equals(location)) {
+                    Location loc = null;
+                    for (Location l : DriverApplication.locations) {
+                        for (DisasterVictim v : l.getOccupants()) {
+                            if (v.getAssignedSocialID() == Integer.parseInt(id)) {
                                 loc = l;
                                 break;
                             }
                         }
+                    }
 
-                        DisasterVictim currentPerson = null;
-                        for (DisasterVictim v : loc.getOccupants()) {
-                            if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
-                                currentPerson = v;
-                                break;
+                    locations.add(loc);
+
+                    JComboBox<String> locationsComboBox = new JComboBox<>();
+                    for (Location l : locations) {
+                        locationsComboBox.addItem(l.getName());
+                    }
+
+                    fields.add(new Pair<Object, Object>("Location:", new JLabel(
+                            locationsComboBox.getSelectedItem().toString())));
+                    fields.add(new Pair<Object, Object>("Treatment Details:", new JTextField(20)));
+                    fields.add(new Pair<Object, Object>("Date of Treatment:", new JTextField(20)));
+
+                    Map<String, Object> components = generatePopupFrameComponents("Add Medical Record", fields);
+                    JFrame popupFrame = (JFrame) components.get("frame");
+                    JButton saveButton = (JButton) components.get("saveButton");
+                    JButton cancelButton = (JButton) components.get("cancelButton");
+
+                    popupFrame.pack();
+                    popupFrame.setVisible(true);
+
+                    saveButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            String location = locationsComboBox.getSelectedItem().toString();
+                            String treatmentDetails = ((JTextField) fields.get(1).second()).getText();
+                            String dateOfTreatment = ((JTextField) fields.get(2).second()).getText();
+
+                            Location loc = null;
+                            for (Location l : DriverApplication.locations) {
+                                if (l.getName().equals(location)) {
+                                    loc = l;
+                                    break;
+                                }
                             }
+
+                            DisasterVictim currentPerson = null;
+                            for (DisasterVictim v : loc.getOccupants()) {
+                                if (Integer.toString(v.getAssignedSocialID()).equals(id)) {
+                                    currentPerson = v;
+                                    break;
+                                }
+                            }
+
+                            if (loc != null && currentPerson != null) {
+                                MedicalRecord record = new MedicalRecord(loc, treatmentDetails, dateOfTreatment);
+                                currentPerson.addMedicalRecord(record);
+                            }
+
+                            popupFrame.dispose();
                         }
+                    });
 
-                        if (loc != null && currentPerson != null) {
-                            MedicalRecord record = new MedicalRecord(loc, treatmentDetails, dateOfTreatment);
-                            currentPerson.addMedicalRecord(record);
+                    cancelButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            popupFrame.dispose();
                         }
+                    });
+                }
+            });
 
-                        popupFrame.dispose();
-                    }
-                });
+            centeringPanel.add(addMedicalRecordButton);
+            detailsPanel.add(centeringPanel, BorderLayout.SOUTH);
 
-                cancelButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        popupFrame.dispose();
-                    }
-                });
-            }
-        });
-
-        centeringPanel.add(addMedicalRecordButton);
-        detailsPanel.add(centeringPanel, BorderLayout.SOUTH);
+        }
 
         dataList = new ArrayList<>();
         columnNames = new String[] { "ID", "Name", "Relation" };
@@ -779,8 +792,8 @@ public class DisasterVictimsPanel extends JPanel {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        String person = ((JComboBox<String>) fields.get(0).second).getSelectedItem().toString();
-                        String relation = ((JTextField) fields.get(1).second).getText();
+                        String person = ((JComboBox<String>) fields.get(0).second()).getSelectedItem().toString();
+                        String relation = ((JTextField) fields.get(1).second()).getText();
                         String otherId = person.split(" ")[0];
 
                         DisasterVictim currentPerson = null;
@@ -877,7 +890,7 @@ public class DisasterVictimsPanel extends JPanel {
                         @SuppressWarnings("unchecked")
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            String supply = ((JComboBox<String>) fields.get(0).second).getSelectedItem().toString();
+                            String supply = ((JComboBox<String>) fields.get(0).second()).getSelectedItem().toString();
                             int quantity = (int) quantitySpinner.getValue();
 
                             DisasterVictim currentPerson = null;
@@ -932,8 +945,8 @@ public class DisasterVictimsPanel extends JPanel {
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String updatedFirstName = ((JTextField) fields.get(1).second).getText();
-                String updatedLastName = ((JTextField) fields.get(2).second).getText();
+                String updatedFirstName = ((JTextField) fields.get(1).second()).getText();
+                String updatedLastName = ((JTextField) fields.get(2).second()).getText();
                 String updatedLocation = (String) locationsComboBox.getSelectedItem();
 
                 DisasterVictim victim = null;

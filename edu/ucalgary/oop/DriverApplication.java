@@ -36,6 +36,7 @@ public class DriverApplication extends AppGui {
         frame = new JFrame("Relief Services Application");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1080, 720);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         initializeMenuBar();
     }
