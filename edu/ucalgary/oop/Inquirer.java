@@ -150,6 +150,10 @@ public class Inquirer extends Person implements ILoggable {
 
     /**
      * Saves the inquirer and their interactions to the database.
+     * Inserts the inquirer if they do not exist, and inserts new interactions.
+     * Clears the list of new interactions after saving.
+     * 
+     * @throws SQLException if a database error occurs
      */
     @Override
     public void saveToDatabase() {

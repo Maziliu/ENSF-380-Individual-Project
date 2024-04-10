@@ -9,6 +9,15 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * The DisasterVictimsPanel class represents a panel that displays information
+ * about disaster victims.
+ * It allows users to search for victims, view their information, and add new
+ * victims.
+ * It also allows users to view and add medical records, family connections, and
+ * personal belongings for each victim.
+ * The panel is used in both the LocalGui and CentralGui classes.
+ */
 public class DisasterVictimsPanel extends JPanel {
     private final AppGui appGui;
     private final JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
@@ -17,6 +26,13 @@ public class DisasterVictimsPanel extends JPanel {
     private JTable resultsTable;
     private JComboBox<String> locationsComboBox;
 
+    /**
+     * Constructs a DisasterVictimsPanel with the given AppGui. This uses
+     * polymorphism to allow for both LocalGui and CentralGui objects to be passed
+     * in and change the GUI.
+     * 
+     * @param appGui the AppGui object that the panel is being created for
+     */
     public DisasterVictimsPanel(AppGui appGui) {
         super(new BorderLayout());
         this.appGui = appGui;
@@ -28,6 +44,12 @@ public class DisasterVictimsPanel extends JPanel {
         setupListeners();
     }
 
+    /**
+     * Creates the panel for a LocalGui object. This is the Local Worker version of
+     * the DisasterVictimsPanel.
+     * 
+     * @param appGui the LocalGui object that the panel is being created for
+     */
     private void createPanel(LocalGui appGui) {
         // Search bar setup
         JPanel searchBarPanel = new JPanel(new BorderLayout());
@@ -83,6 +105,12 @@ public class DisasterVictimsPanel extends JPanel {
         });
     }
 
+    /**
+     * Creates the panel for a CentralGui object. This is the Central Worker version
+     * of the DisasterVictimsPanel.
+     * 
+     * @param appGui the CentralGui object that the panel is being created for
+     */
     private void createPanel(CentralGui appGui) {
         // Search bar setup
         JPanel searchBarPanel = new JPanel(new BorderLayout());
@@ -99,6 +127,12 @@ public class DisasterVictimsPanel extends JPanel {
         updateDisasterVictimTable(searchBar, model);
     }
 
+    /**
+     * Returns the panel that displays information about disaster victims. This is
+     * the popup panel when a victim is clicked on.
+     * 
+     * @return the panel that displays information about disaster victims
+     */
     private JPanel getCenterDisasterVictimPanel() {
         String[] columnNames = { "Id", "FirstName", "LastName", "Location" };
         model = new DefaultTableModel(null, columnNames) {
@@ -207,6 +241,12 @@ public class DisasterVictimsPanel extends JPanel {
         return centerPanel;
     }
 
+    /**
+     * Sets up the listeners for the panel. This includes the search bar and the
+     * table. When the search bar is used, the table is updated with the search
+     * results. When a victim is clicked on, a popup is displayed with the victim's
+     * information.
+     */
     private void setupListeners() {
         resultsTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -228,6 +268,14 @@ public class DisasterVictimsPanel extends JPanel {
         });
     }
 
+    /**
+     * Updates the disaster victim table with the search results.
+     * 
+     * @param searchBar the search bar that the user is typing in. This is a
+     *                  JTextField object
+     * @param model     the table model that is being updated. This is a
+     *                  DefaultTableModel object
+     */
     private void updateDisasterVictimTable(JTextField searchBar, DefaultTableModel model) {
         String searchText = searchBar.getText();
         ArrayList<Pair<DisasterVictim, Location>> results = searchDisasterVictim(searchText);
@@ -238,6 +286,17 @@ public class DisasterVictimsPanel extends JPanel {
         }
     }
 
+    /**
+     * Searches for disaster victims based on the given search text. The search text
+     * is used to search for victims based on their first name, last name, location,
+     * and social ID. The search results are sorted based on the number of
+     * matches(Score). This allows for the most relevant results to be displayed
+     * first.
+     * 
+     * @param searchText the text that the user is searching for
+     * @return an ArrayList of Pair objects that contain the disaster victim and
+     *         their location
+     */
     private ArrayList<Pair<DisasterVictim, Location>> searchDisasterVictim(String searchText) {
         Map<Pair<DisasterVictim, Location>, Integer> scores = new HashMap<>();
         ArrayList<String> searchWords = new ArrayList<>(Arrays.asList(searchText.toLowerCase().split("\\s+")));
@@ -248,7 +307,7 @@ public class DisasterVictimsPanel extends JPanel {
 
         for (Location location : DriverApplication.locations) {
             for (DisasterVictim victim : location.getOccupants()) {
-                if (matchesAllCriteria(victim, location, searchWords)) {
+                if (anyMatches(victim, location, searchWords)) {
                     scores.put(new Pair<>(victim, location), calculateScore(victim, location, searchWords));
                 }
             }
@@ -266,7 +325,16 @@ public class DisasterVictimsPanel extends JPanel {
         return results;
     }
 
-    private boolean matchesAllCriteria(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
+    /**
+     * Checks if the victim matches any of the search criteria.
+     * 
+     * @param victim      The victim to check for matches with
+     * @param location    The location of the victim
+     * @param searchWords The words in the search bar to search for
+     * @return true if the victim matches any of the search criteria, false
+     *         otherwise (if no matches are found)
+     */
+    private boolean anyMatches(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
         for (String word : searchWords) {
             if (!(victim.getFirstName().toLowerCase().contains(word) ||
                     victim.getLastName().toLowerCase().contains(word) ||
@@ -278,6 +346,15 @@ public class DisasterVictimsPanel extends JPanel {
         return true;
     }
 
+    /**
+     * Calculates the score of the victim based on the search criteria.
+     * 
+     * @param victim      The victim to calculate the score for. The information of
+     *                    the victim is used to calculate the score
+     * @param location    The location of the victim
+     * @param searchWords The words in the search bar to search for
+     * @return The score of the search criteria based on the victim's information
+     */
     private int calculateScore(DisasterVictim victim, Location location, ArrayList<String> searchWords) {
         int score = 0;
         for (String word : searchWords) {
@@ -291,6 +368,17 @@ public class DisasterVictimsPanel extends JPanel {
         return score;
     }
 
+    /**
+     * Generates the components for the popup frame. This includes the title,
+     * fields, and buttons.
+     * 
+     * @param title  The title of the popup frame
+     * @param fields The fields to display in the popup frame. Each field is a Pair
+     *               object with the first element being the label and the second
+     *               element being the component. These fields are displayed inline
+     *               vertically.
+     * @return A map of the components of the popup frame
+     */
     private Map<String, Object> generatePopupFrameComponents(String title, ArrayList<Pair<Object, Object>> fields) {
         JFrame popupFrame = new JFrame(title);
         popupFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -331,6 +419,16 @@ public class DisasterVictimsPanel extends JPanel {
         return returnList;
     }
 
+    /**
+     * Creates a panel with a table that displays the given data.
+     * 
+     * @param dataList    The data to display in the table. Each element in the list
+     *                    is an array of objects that represent a row in the table
+     * @param columnNames The names of the columns in the table
+     * @param dimension   The dimension of the table
+     * @param title       The title of the table
+     * @return A JPanel with a table that displays the given data
+     */
     private JPanel createTablePanel(ArrayList<Object[]> dataList, String[] columnNames, Dimension dimension,
             String title) {
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -359,6 +457,13 @@ public class DisasterVictimsPanel extends JPanel {
         return tablePanel;
     }
 
+    /**
+     * Returns the JTable object from the given container. This is used to get the
+     * table from a JScrollPane.
+     * 
+     * @param container The container to get the table from
+     * @return The JTable object from the container
+     */
     private static JTable getTableFromScrollPane(Container container) {
         Component comp = container.getLayout() instanceof BorderLayout
                 ? ((BorderLayout) container.getLayout()).getLayoutComponent(BorderLayout.CENTER)
@@ -374,6 +479,20 @@ public class DisasterVictimsPanel extends JPanel {
         return null;
     }
 
+    /**
+     * Displays a popup with information about the victim. This includes the
+     * victim's personal information, medical records, family connections, and
+     * personal belongings.
+     * 
+     * @param id        The ID of the victim
+     * @param firstName The first name of the victim
+     * @param lastName  The last name of the victim
+     * @param location  The location of the victim
+     * @param searchBar The search bar that the user is typing in. This is a
+     *                  JTextField object
+     * @param model     The table model that is being updated. This is a
+     *                  DefaultTableModel object
+     */
     private void displayVictimInfoPopup(String id, String firstName, String lastName, String location,
             JTextField searchBar, DefaultTableModel model) {
 
